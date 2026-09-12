@@ -1,6 +1,22 @@
 export type TaskDifficulty = 1 | 2 | 3 | 4 | 5
 export type TaskStatus = 'pending' | 'active' | 'completed' | 'archived'
-export type ActiveTab = 'sanctuary' | 'attributes' | 'rewards' | 'armory' | 'chronicles'
+export type ActiveTab = 'sanctuary' | 'boss_raid' | 'attributes' | 'rewards' | 'armory' | 'chronicles'
+
+export interface BossEntity {
+  id: string
+  tier: number
+  name: string
+  title: string
+  avatar: string
+  lore: string
+  maxHp: number
+  currentHp: number
+  isDefeated: boolean
+  bountyCoins: number
+  bountyXp: number
+  element: 'void' | 'fire' | 'astral' | 'gold'
+  weakness: string
+}
 
 export interface ShopItem {
   id: number

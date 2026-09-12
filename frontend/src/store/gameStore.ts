@@ -5,26 +5,6 @@ import { categorizeTaskAttributes } from '../lib/attributeMapping'
 import { soundFx } from '../lib/audio'
 import { PREVIEW_TOKEN, previewAttributes, previewProfile, previewTasks } from '../lib/previewData'
 import { useAuthStore } from './authStore'
-import { rollForLootDrop, type LootReward } from '../lib/lootDrops'
-import { INITIAL_ACHIEVEMENTS, type Achievement } from '../lib/achievements'
-import type {
-  ActiveTab,
-  InventoryItem,
-  Profile,
-  ProfileAttribute,
-  StreakInfo,
-  Task,
-  TaskCompletionResponse,
-} from '../types/rpg'
-
-export interface BossState {
-  name: string
-  title: string
-  maxHp: number
-  currentHp: number
-  isDefeated: boolean
-}
-
 import type { ShopItem } from '../types/rpg'
 
 export const INITIAL_SHOP_ITEMS: ShopItem[] = [
@@ -326,6 +306,28 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
   },
 ]
 
+import { rollForLootDrop, type LootReward } from '../lib/lootDrops'
+import { INITIAL_ACHIEVEMENTS, type Achievement } from '../lib/achievements'
+import { BOSS_TIERS, getStoredBossTier, getStoredBossHp } from '../lib/bosses'
+import type {
+  ActiveTab,
+  BossEntity,
+  InventoryItem,
+  Profile,
+  ProfileAttribute,
+  StreakInfo,
+  Task,
+  TaskCompletionResponse,
+} from '../types/rpg'
+
+export interface CombatLogEntry {
+  id: string
+  text: string
+  damage: number
+  type: 'player_hit' | 'boss_hit' | 'limit_break' | 'victory'
+  timestamp: string
+}
+
 export interface CelebrationState {
   type: 'LEVEL_UP' | 'ITEM_PURCHASED'
   level?: number
@@ -345,7 +347,11 @@ interface GameState {
   sfxEnabled: boolean
   crtEnabled: boolean
   resting: boolean
-  boss: BossState
+  boss: BossEntity
+  bossTier: number
+  bossVictoryReward: { boss: BossEntity; coins: number; xp: number } | null
+  heroComboCharge: number
+  combatLog: CombatLogEntry[]
   loading: boolean
   syncing: boolean
   error: string | null
@@ -380,6 +386,10 @@ interface GameState {
   dismissLootDrop: () => void
   claimLootDrop: (loot: LootReward) => void
   claimAchievement: (achievementId: string) => void
+  strikeBoss: (damage: number, sourceTitle: string) => void
+  unleashLimitBreak: () => void
+  claimBossVictory: () => void
+  dismissBossVictory: () => void
   clearError: () => void
   reset: () => void
 }
@@ -392,12 +402,18 @@ const XP_BY_DIFFICULTY: Record<1 | 2 | 3 | 4 | 5, number> = {
   5: 250,
 }
 
-const INITIAL_BOSS: BossState = {
-  name: 'CORRUPTED BEHEMOTH',
-  title: 'Scourge of the Ashen Waste',
-  maxHp: 400,
-  currentHp: 220,
-  isDefeated: false,
+const getInitialBoss = (userId?: string): { boss: BossEntity; tier: number } => {
+  const tier = getStoredBossTier(userId)
+  const base = BOSS_TIERS.find((b) => b.tier === tier) || BOSS_TIERS[0]
+  const currentHp = getStoredBossHp(base.id, base.maxHp, userId)
+  return {
+    tier,
+    boss: {
+      ...base,
+      currentHp,
+      isDefeated: currentHp <= 0,
+    },
+  }
 }
 
 function applyCompletionToProfile(current: Profile | null, result: TaskCompletionResponse): Profile | null {
@@ -550,6 +566,8 @@ function checkAchievementsProgress(
   return updated
 }
 
+const initialBossData = getInitialBoss()
+
 export const useGameStore = create<GameState>((set, get) => ({
   profile: null,
   attributes: [],
@@ -565,7 +583,19 @@ export const useGameStore = create<GameState>((set, get) => ({
   sfxEnabled: true,
   crtEnabled: false,
   resting: false,
-  boss: INITIAL_BOSS,
+  boss: initialBossData.boss,
+  bossTier: initialBossData.tier,
+  bossVictoryReward: null,
+  heroComboCharge: 35,
+  combatLog: [
+    {
+      id: 'log_init',
+      text: '⚔️ Entered the Abyss Arena. The World Boss stirs!',
+      damage: 0,
+      type: 'boss_hit',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    },
+  ],
   loading: false,
   syncing: false,
   error: null,
@@ -719,6 +749,174 @@ export const useGameStore = create<GameState>((set, get) => ({
   toggleBgm: () => {
     const playing = soundFx.toggleBGM()
     set({ bgmPlaying: playing })
+  },
+
+  strikeBoss: (damage: number, sourceTitle: string) => {
+    soundFx.playSwordSlash()
+    soundFx.playBossHit()
+
+    const currentBoss = get().boss
+    const newHp = Math.max(0, currentBoss.currentHp - damage)
+    const isSlayed = newHp === 0
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+    const newLogEntry: CombatLogEntry = {
+      id: `log_${Date.now()}`,
+      text: `🗡️ ${sourceTitle} struck ${currentBoss.name} for -${damage} HP!`,
+      damage,
+      type: 'player_hit',
+      timestamp: timeStr,
+    }
+
+    const userId = get().profile?.id
+    if (typeof window !== 'undefined') {
+      const bossHpKey = userId ? `ashen_boss_hp_${currentBoss.id}_${userId}` : `ashen_boss_hp_${currentBoss.id}`
+      localStorage.setItem(bossHpKey, String(newHp))
+    }
+
+    if (isSlayed) {
+      soundFx.playVictoryFanfare()
+      const victoryEntry: CombatLogEntry = {
+        id: `log_vic_${Date.now()}`,
+        text: `👑 VICTORY! ${currentBoss.name} has been vanquished!`,
+        damage: 0,
+        type: 'victory',
+        timestamp: timeStr,
+      }
+      set({
+        boss: { ...currentBoss, currentHp: 0, isDefeated: true },
+        bossVictoryReward: {
+          boss: currentBoss,
+          coins: currentBoss.bountyCoins,
+          xp: currentBoss.bountyXp,
+        },
+        combatLog: [victoryEntry, newLogEntry, ...get().combatLog.slice(0, 15)],
+      })
+    } else {
+      set((s) => ({
+        boss: { ...s.boss, currentHp: newHp },
+        heroComboCharge: Math.min(100, s.heroComboCharge + 15),
+        combatLog: [newLogEntry, ...s.combatLog.slice(0, 15)],
+      }))
+    }
+  },
+
+  unleashLimitBreak: () => {
+    if (get().heroComboCharge < 100) return
+    soundFx.playSpellBurst()
+    soundFx.playBossHit()
+
+    const currentBoss = get().boss
+    const damage = Math.round(currentBoss.maxHp * 0.35) // Deals 35% of boss max HP
+    const newHp = Math.max(0, currentBoss.currentHp - damage)
+    const isSlayed = newHp === 0
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+    const limitLogEntry: CombatLogEntry = {
+      id: `log_limit_${Date.now()}`,
+      text: `⚡ HERO LIMIT BREAK: Solar Arcane Cleave dealt massive -${damage} HP to ${currentBoss.name}!`,
+      damage,
+      type: 'limit_break',
+      timestamp: timeStr,
+    }
+
+    const userId = get().profile?.id
+    if (typeof window !== 'undefined') {
+      const bossHpKey = userId ? `ashen_boss_hp_${currentBoss.id}_${userId}` : `ashen_boss_hp_${currentBoss.id}`
+      localStorage.setItem(bossHpKey, String(newHp))
+    }
+
+    if (isSlayed) {
+      soundFx.playVictoryFanfare()
+      set({
+        boss: { ...currentBoss, currentHp: 0, isDefeated: true },
+        heroComboCharge: 0,
+        bossVictoryReward: {
+          boss: currentBoss,
+          coins: currentBoss.bountyCoins,
+          xp: currentBoss.bountyXp,
+        },
+        combatLog: [limitLogEntry, ...get().combatLog.slice(0, 15)],
+      })
+    } else {
+      set((s) => ({
+        boss: { ...s.boss, currentHp: newHp },
+        heroComboCharge: 0,
+        combatLog: [limitLogEntry, ...s.combatLog.slice(0, 15)],
+      }))
+    }
+  },
+
+  dismissBossVictory: () => {
+    soundFx.playClick()
+    set({ bossVictoryReward: null })
+  },
+
+  claimBossVictory: () => {
+    const reward = get().bossVictoryReward
+    if (!reward) return
+
+    soundFx.playPurchaseSound()
+    const addedCoins = reward.coins
+    const addedXP = reward.xp
+    const newCoins = get().coins + addedCoins
+
+    const currentProfile = get().profile
+    let updatedProfile = currentProfile
+    if (currentProfile) {
+      const gained = applyXPGain(currentProfile.current_level, currentProfile.total_xp, addedXP)
+      updatedProfile = {
+        ...currentProfile,
+        current_level: gained.newLevel,
+        total_xp: gained.newTotalXP,
+        progress_xp: gained.progressXP,
+        xp_needed_for_next: gained.xpNeededForNext,
+        coins: newCoins,
+      }
+    }
+
+    // Advance to next boss tier
+    const nextTier = (reward.boss.tier % BOSS_TIERS.length) + 1
+    const nextBossBase = BOSS_TIERS.find((b) => b.tier === nextTier) || BOSS_TIERS[0]
+    const nextBoss: BossEntity = {
+      ...nextBossBase,
+      currentHp: nextBossBase.maxHp,
+      isDefeated: false,
+    }
+
+    const userId = get().profile?.id
+    if (typeof window !== 'undefined') {
+      const coinKey = userId ? `ashen_coins_${userId}` : 'ashen_coins'
+      const tierKey = userId ? `ashen_boss_tier_${userId}` : 'ashen_boss_tier'
+      const bossHpKey = userId ? `ashen_boss_hp_${nextBoss.id}_${userId}` : `ashen_boss_hp_${nextBoss.id}`
+      localStorage.setItem(coinKey, String(newCoins))
+      localStorage.setItem(tierKey, String(nextTier))
+      localStorage.setItem(bossHpKey, String(nextBoss.maxHp))
+    }
+
+    const token = useAuthStore.getState().accessToken
+    if (token && token !== PREVIEW_TOKEN) {
+      rpgApi.updateProfile(token, { coins: newCoins }).catch(() => {})
+    }
+
+    set({
+      coins: newCoins,
+      profile: updatedProfile,
+      boss: nextBoss,
+      bossTier: nextTier,
+      bossVictoryReward: null,
+      heroComboCharge: 20,
+      combatLog: [
+        {
+          id: `log_next_${Date.now()}`,
+          text: `🔥 Tier ${nextTier} World Boss ${nextBoss.name} has emerged in the Abyss!`,
+          damage: 0,
+          type: 'boss_hit',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+        ...get().combatLog.slice(0, 10),
+      ],
+    })
   },
 
   restAtBonfire: () => {
@@ -995,20 +1193,57 @@ export const useGameStore = create<GameState>((set, get) => ({
     const target = snapshot.find((task) => task.task_id === taskId)
     if (!target) throw new Error('Quest not found.')
 
-    // Optimistic strike
-    soundFx.playSwordSlash()
     soundFx.playBossHit()
 
-    // Boss damage calculation
-    const damage = Math.max(20, target.xp_reward)
-    const newBossHp = Math.max(0, get().boss.currentHp - damage)
-    set((s) => ({
-      boss: {
-        ...s.boss,
-        currentHp: newBossHp,
-        isDefeated: newBossHp === 0,
-      },
-    }))
+    // Boss damage calculation with equipped weapon bonus
+    const equippedWeapon = get().shopItems.find((i) => i.isEquipped && i.type === 'weapon')
+    const weaponBonus = equippedWeapon ? 30 : 0
+    const damage = Math.max(20, target.xp_reward) + weaponBonus
+    const currentBoss = get().boss
+    const newBossHp = Math.max(0, currentBoss.currentHp - damage)
+    const isSlayed = newBossHp === 0
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+    const questCombatLog: CombatLogEntry = {
+      id: `log_quest_${Date.now()}`,
+      text: `⚔️ Completed "${target.title}" and slashed ${currentBoss.name} for -${damage} HP!`,
+      damage,
+      type: 'player_hit',
+      timestamp: timeStr,
+    }
+
+    const userId = get().profile?.id
+    if (typeof window !== 'undefined') {
+      const bossHpKey = userId ? `ashen_boss_hp_${currentBoss.id}_${userId}` : `ashen_boss_hp_${currentBoss.id}`
+      localStorage.setItem(bossHpKey, String(newBossHp))
+    }
+
+    if (isSlayed) {
+      soundFx.playVictoryFanfare()
+      const vicLog: CombatLogEntry = {
+        id: `log_vic_${Date.now()}`,
+        text: `👑 VICTORY! ${currentBoss.name} has been vanquished!`,
+        damage: 0,
+        type: 'victory',
+        timestamp: timeStr,
+      }
+      set((s) => ({
+        boss: { ...s.boss, currentHp: 0, isDefeated: true },
+        bossVictoryReward: {
+          boss: currentBoss,
+          coins: currentBoss.bountyCoins,
+          xp: currentBoss.bountyXp,
+        },
+        heroComboCharge: 100,
+        combatLog: [vicLog, questCombatLog, ...s.combatLog.slice(0, 15)],
+      }))
+    } else {
+      set((s) => ({
+        boss: { ...s.boss, currentHp: newBossHp },
+        heroComboCharge: Math.min(100, s.heroComboCharge + 25),
+        combatLog: [questCombatLog, ...s.combatLog.slice(0, 15)],
+      }))
+    }
 
     set({
       syncing: true,
@@ -1284,7 +1519,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  reset: () =>
+  reset: () => {
+    const initialBoss = getInitialBoss()
     set({
       profile: null,
       attributes: [],
@@ -1296,12 +1532,18 @@ export const useGameStore = create<GameState>((set, get) => ({
       lootDrop: null,
       bgmPlaying: false,
       streakInfo: null,
-      boss: INITIAL_BOSS,
+      boss: initialBoss.boss,
+      bossTier: initialBoss.tier,
+      bossVictoryReward: null,
+      heroComboCharge: 0,
+      combatLog: [],
       loading: false,
       syncing: false,
       error: null,
       lastCompletion: null,
       celebration: null,
-    }),
+    })
+  },
 }))
+
 

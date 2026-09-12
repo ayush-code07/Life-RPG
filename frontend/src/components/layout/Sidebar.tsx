@@ -30,6 +30,12 @@ export function Sidebar() {
       icon: '🛡️',
     },
     {
+      id: 'boss_raid',
+      label: 'ABYSS RAID',
+      sub: 'World Boss Battle',
+      icon: '💀',
+    },
+    {
       id: 'attributes',
       label: 'ATTRIBUTES',
       sub: 'Stats & Mastery',
