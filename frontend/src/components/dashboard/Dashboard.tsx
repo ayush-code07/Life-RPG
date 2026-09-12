@@ -28,6 +28,7 @@ export function Dashboard() {
     hydrate,
     completeQuest,
     addQuest,
+    deleteQuest,
     clearError,
   } = useGameStore()
 
@@ -84,6 +85,9 @@ export function Dashboard() {
                   busy={loading || syncing}
                   onComplete={async (taskId) => {
                     if (accessToken) await completeQuest(accessToken, taskId)
+                  }}
+                  onDelete={async (taskId) => {
+                    if (accessToken) await deleteQuest(accessToken, taskId)
                   }}
                   onOpenCreateModal={() => setCreateQuestOpen(true)}
                 />

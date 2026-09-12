@@ -192,6 +192,12 @@ interface GameState {
     accessToken: string,
     input: { title: string; description?: string; difficulty: 1 | 2 | 3 | 4 | 5; tags?: string[] }
   ) => Promise<void>
+  updateQuest: (
+    accessToken: string,
+    taskId: number,
+    updates: { title?: string; description?: string; difficulty?: 1 | 2 | 3 | 4 | 5; tags?: string[] }
+  ) => Promise<void>
+  deleteQuest: (accessToken: string, taskId: number) => Promise<void>
   buyItem: (itemId: number) => boolean
   equipItem: (itemId: number) => void
   setActiveTab: (tab: ActiveTab) => void
@@ -366,7 +372,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Persist to PostgreSQL database in background
     const token = useAuthStore.getState().accessToken
     if (token && token !== PREVIEW_TOKEN) {
-      rpgApi.updateProfile(token, { coins: newCoins, equipped_gear: updatedShop }).catch(() => {})
+      rpgApi.updateProfile(token, { coins: newCoins, equipped_gear: updatedShop }).catch(() => { })
     }
 
     set({
@@ -406,7 +412,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Persist to PostgreSQL database in background
     const token = useAuthStore.getState().accessToken
     if (token && token !== PREVIEW_TOKEN) {
-      rpgApi.updateProfile(token, { equipped_gear: updatedShop }).catch(() => {})
+      rpgApi.updateProfile(token, { equipped_gear: updatedShop }).catch(() => { })
     }
 
     set({ shopItems: updatedShop, inventory: updatedInv })
@@ -535,7 +541,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (accessToken === PREVIEW_TOKEN) {
         const current = get().profile ?? previewProfile
         const gained = applyXPGain(current.current_level, current.total_xp, target.xp_reward)
-        
+
         // Coins economy: +1 coin per task + 10 coins per level up
         const earnedCoins = 1 + (gained.levelsGained * 10)
         const updatedCoins = get().coins + earnedCoins
@@ -549,8 +555,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
 
         const result: TaskCompletionResponse = {
-          message: gained.levelsGained > 0 
-            ? `🎉 Level Up! (+${gained.levelsGained * 10} Coins)` 
+          message: gained.levelsGained > 0
+            ? `🎉 Level Up! (+${gained.levelsGained * 10} Coins)`
             : 'Quest complete. (+1 Coin)',
           task: { task_id: target.task_id, title: target.title, xp_awarded: target.xp_reward },
           profile: {
@@ -580,7 +586,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
 
       const result = await rpgApi.completeTask(accessToken, taskId)
-      
+
       // Coins economy: +1 coin per task + 10 coins per level up
       const levelsGained = result.profile.levels_gained || 0
       const earnedCoins = 1 + (levelsGained * 10)
@@ -595,7 +601,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
 
       // Persist coins to PostgreSQL database in background
-      rpgApi.updateProfile(accessToken, { coins: updatedCoins }).catch(() => {})
+      rpgApi.updateProfile(accessToken, { coins: updatedCoins }).catch(() => { })
 
       set({
         coins: updatedCoins,
@@ -666,6 +672,66 @@ export const useGameStore = create<GameState>((set, get) => ({
         error: 'Failed to record quest to database. Please check connection.',
       }))
       throw error
+    }
+  },
+
+  updateQuest: async (accessToken, taskId, updates) => {
+    const previousTasks = get().tasks
+    const xpReward = updates.difficulty ? XP_BY_DIFFICULTY[updates.difficulty] : undefined
+
+    let finalDescription = updates.description
+    if (updates.tags && updates.tags.length > 0) {
+      const tagPrefix = `[TAGS:${updates.tags.join(',')}]`
+      finalDescription = finalDescription ? `${tagPrefix} ${finalDescription}` : tagPrefix
+    }
+
+    // Optimistic local update
+    set((s) => ({
+      tasks: s.tasks.map((t) =>
+        t.task_id === taskId
+          ? {
+              ...t,
+              ...updates,
+              xp_reward: xpReward ?? t.xp_reward,
+              description: finalDescription ?? t.description,
+            }
+          : t
+      ),
+    }))
+
+    if (accessToken === PREVIEW_TOKEN) return
+
+    try {
+      await rpgApi.updateTask(accessToken, taskId, {
+        title: updates.title,
+        description: finalDescription,
+        difficulty: updates.difficulty,
+        xp_reward: xpReward,
+      })
+    } catch (err) {
+      // Rollback on failure
+      set({ tasks: previousTasks, error: 'Failed to update quest in database.' })
+      throw err
+    }
+  },
+
+  deleteQuest: async (accessToken, taskId) => {
+    const previousTasks = get().tasks
+    soundFx.playClick()
+
+    // Optimistic removal
+    set((s) => ({
+      tasks: s.tasks.filter((t) => t.task_id !== taskId),
+    }))
+
+    if (accessToken === PREVIEW_TOKEN) return
+
+    try {
+      await rpgApi.deleteTask(accessToken, taskId)
+    } catch (err) {
+      // Rollback on failure
+      set({ tasks: previousTasks, error: 'Failed to remove quest from database.' })
+      throw err
     }
   },
 

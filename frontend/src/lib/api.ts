@@ -84,6 +84,27 @@ export const rpgApi = {
       { method: 'POST' }
     ),
 
+  updateTask: (
+    token: string,
+    taskId: number,
+    body: {
+      title?: string
+      description?: string
+      difficulty?: 1 | 2 | 3 | 4 | 5
+      xp_reward?: number
+      status?: 'pending' | 'active' | 'completed' | 'archived'
+    }
+  ) =>
+    request<ApiEnvelope<Task>>(`/api/tasks/${taskId}`, token, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }).then((r) => r.data!),
+
+  deleteTask: (token: string, taskId: number) =>
+    request<ApiEnvelope<never>>(`/api/tasks/${taskId}`, token, {
+      method: 'DELETE',
+    }),
+
   getInventory: (token: string) =>
     request<ApiEnvelope<any[]>>('/api/profile/me/inventory', token).then(
       (r) => r.data ?? []

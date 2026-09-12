@@ -6,6 +6,7 @@ import type { Task } from '../../types/rpg'
 interface QuestItemProps {
   quest: Task
   onComplete: (taskId: number) => Promise<void> | void
+  onDelete?: (taskId: number) => Promise<void> | void
   disabled?: boolean
 }
 
@@ -27,7 +28,7 @@ function getQuestMeta(title: string, difficulty: number) {
   return { icon: '⚔️', bonus: `+${difficulty * 5} Mastery`, color: 'text-gold' }
 }
 
-export function QuestItem({ quest, onComplete, disabled }: QuestItemProps) {
+export function QuestItem({ quest, onComplete, onDelete, disabled }: QuestItemProps) {
   const titleId = useId()
   const [optimisticDone, setOptimisticDone] = useState(quest.status === 'completed')
   const [burst, setBurst] = useState(false)
@@ -154,9 +155,24 @@ export function QuestItem({ quest, onComplete, disabled }: QuestItemProps) {
         </div>
       </div>
 
-      {/* Right Arrow / Completion Indicator */}
-      <div className="pl-3 text-muted-dark group-hover:translate-x-1 group-hover:text-gold transition-all">
-        <span className="text-sm font-bold">›</span>
+      {/* Right Actions / Abandon & Completion Indicator */}
+      <div className="flex items-center gap-2 pl-2">
+        {onDelete && !done && (
+          <button
+            type="button"
+            title="Abandon Quest"
+            onClick={(e) => {
+              e.stopPropagation()
+              void onDelete(quest.task_id)
+            }}
+            className="opacity-0 group-hover:opacity-70 hover:!opacity-100 p-1.5 rounded-lg hover:bg-ember/15 text-muted hover:text-ember transition-all"
+          >
+            <span className="text-xs">🗑️</span>
+          </button>
+        )}
+        <div className="text-muted-dark group-hover:translate-x-0.5 group-hover:text-gold transition-all">
+          <span className="text-sm font-bold">›</span>
+        </div>
       </div>
 
       {/* Floating XP & Coin Reward Burst Animation */}
