@@ -53,7 +53,7 @@ export function Sidebar() {
   return (
     <aside
       aria-label="Sidebar Navigation"
-      className="flex flex-col justify-between border-r border-[#262018] bg-[#0e0c0a]/95 p-4 sm:p-5 lg:min-h-screen lg:w-72 xl:w-80"
+      className="flex flex-col justify-between border-r border-[#262018] bg-[#0e0c0a]/95 p-4 sm:p-5 lg:h-full lg:overflow-y-auto lg:w-72 xl:w-80 shrink-0 z-30"
     >
       <div className="space-y-6">
         {/* Brand Header */}

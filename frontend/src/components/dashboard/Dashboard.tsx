@@ -32,15 +32,16 @@ export function Dashboard() {
   }, [accessToken, hydrate])
 
   return (
-    <div className={`min-h-screen bg-[#0a0908] text-parchment ${crtEnabled ? 'crt-overlay' : ''}`}>
-      <div className="flex flex-col lg:flex-row min-h-screen">
+    <div className={`h-screen w-screen overflow-hidden bg-[#0a0908] text-parchment ${crtEnabled ? 'crt-overlay' : ''}`}>
+      <div className="flex flex-col lg:flex-row h-full w-full overflow-hidden">
         {/* Left Sidebar */}
         <Sidebar />
 
-        {/* Main Content Area */}
-        <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
-          {/* Top Header */}
-          <TopHeader />
+        {/* Main Content Area with independent scroll */}
+        <main id="main-content" tabIndex={-1} className="flex-1 h-full overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto w-full space-y-6">
+            {/* Top Header */}
+            <TopHeader />
 
           {/* Offline / Preview status notice */}
           {preview && (
@@ -94,7 +95,8 @@ export function Dashboard() {
           {activeTab === 'attributes' && <AttributesView />}
           {activeTab === 'armory' && <ArmoryView />}
           {activeTab === 'chronicles' && <ChroniclesView />}
-        </div>
+          </div>
+        </main>
       </div>
     </div>
   )
