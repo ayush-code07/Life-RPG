@@ -3,6 +3,7 @@ import { Sidebar } from '../layout/Sidebar'
 import { TopHeader } from '../layout/TopHeader'
 import { AxiomBanner } from './AxiomBanner'
 import { BonfireScene } from '../character/BonfireScene'
+import { HeroStatsPanel } from '../character/HeroStatsPanel'
 import { BossRaidWidget } from './BossRaidWidget'
 import { QuestBoard } from '../quests/QuestBoard'
 import { CreateQuestModal } from '../quests/CreateQuestModal'
@@ -77,15 +78,25 @@ export function Dashboard() {
 
           {/* Tab Views */}
           {activeTab === 'sanctuary' && (
-            <div className="grid gap-6 lg:grid-cols-[minmax(320px,420px)_1fr]">
-              {/* Left Column: Bonfire, Level Progress & Core Abilities */}
-              <div>
-                <BonfireScene />
+            <div className="space-y-6">
+              {/* Top Hero Section: Character Box + Level & Core Abilities Side-by-Side */}
+              <div className="grid gap-6 grid-cols-1 lg:grid-cols-12 items-stretch">
+                {/* Left: Character Bonfire Scene Canvas Box */}
+                <div className="lg:col-span-6 xl:col-span-5 flex flex-col">
+                  <BonfireScene />
+                </div>
+
+                {/* Right: Level & Core Abilities to the side of Character */}
+                <div className="lg:col-span-6 xl:col-span-7 flex flex-col">
+                  <HeroStatsPanel />
+                </div>
               </div>
 
-              {/* Right Column: World Boss & Quest Board */}
-              <div className="space-y-5">
-                <BossRaidWidget />
+              {/* Boss Raid Widget */}
+              <BossRaidWidget />
+
+              {/* Full Width Quests Section Below */}
+              <div className="w-full">
                 <QuestBoard
                   quests={tasks}
                   busy={loading || syncing}

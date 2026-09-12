@@ -4,12 +4,7 @@ import { PixelHeroSprite } from './PixelHeroSprite'
 
 export function BonfireScene() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const { profile, resting, restAtBonfire, attributes } = useGameStore()
-
-  const level = profile?.current_level ?? 12
-  const currentXP = profile?.progress_xp ?? 320
-  const neededXP = profile?.xp_needed_for_next ?? 500
-  const progressPercent = Math.min(100, Math.max(0, Math.round((currentXP / neededXP) * 100)))
+  const { profile, resting, restAtBonfire } = useGameStore()
 
   // Animated Ember Particle Physics Canvas
   useEffect(() => {
@@ -103,220 +98,86 @@ export function BonfireScene() {
   }, [resting])
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Bonfire Canvas Viewport */}
-      <div className="relative h-64 sm:h-72 w-full overflow-hidden rounded-2xl border border-[#382d20] bg-gradient-to-b from-[#0a0807] via-[#110d0a] to-[#1a140f] p-4 shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
-        {/* Background Blood Moon / Solar Eclipse */}
-        <div className="absolute right-6 top-6 h-12 w-12 sm:h-14 sm:w-14">
-          <div className="relative h-full w-full rounded-full bg-[#0d0a08] shadow-[0_0_20px_#e65c24,inset_-4px_-4px_12px_#ff9b53]">
-            <div className="absolute -inset-0.5 rounded-full border border-ember opacity-80 animate-pulse" />
-          </div>
-        </div>
-
-        {/* Stars / Dust in sky */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-transparent via-black/20 to-black/80 pointer-events-none" />
-
-        {/* Particle Canvas for Dynamic Embers */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 h-full w-full pointer-events-none z-10"
-        />
-
-        {/* Ground Floor Silhouette */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0e0b08] to-transparent border-b border-[#2e261d]" />
-        <div className="absolute bottom-3 left-6 right-6 h-1 bg-[#1c1612] rounded-full opacity-60" />
-
-        {/* Pixel Art Character Wearing Equipped Gear */}
-        <div className="absolute bottom-6 left-12 sm:left-16 flex flex-col items-center z-20">
-          <div className={`transition-transform duration-300 ${resting ? 'scale-95' : 'animate-knight-idle'}`}>
-            <PixelHeroSprite resting={resting} size={64} />
-          </div>
-          <div className="mt-2 rounded border border-[#2e261d] bg-[#100e0b] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-gold">
-            {profile?.username ?? 'HERO'}
-          </div>
-        </div>
-
-        {/* Bonfire & Plunged Coiled Sword */}
-        <div className="absolute bottom-6 right-10 sm:right-16 flex flex-col items-center z-20">
-          {/* Flame & Sword Visual */}
-          <div className="relative flex flex-col items-center">
-            {/* Sword Blade */}
-            <div className="relative h-20 w-3 z-10 flex flex-col items-center">
-              {/* Pommel / Crossguard */}
-              <div className="h-2 w-7 rounded bg-[#9a9187] border border-[#d1c7bc] shadow-sm" />
-              <div className="h-4 w-1.5 bg-[#4a3f35]" />
-              {/* Blade */}
-              <div className="h-14 w-2 bg-gradient-to-b from-[#e5e5e5] via-[#a39f99] to-[#ff7738] rounded-b-sm border-x border-[#f5f5f5]/40" />
-            </div>
-
-            {/* Bonfire Flame */}
-            <div className="absolute -bottom-2 h-20 w-16 animate-flame z-20 pointer-events-none">
-              <svg viewBox="0 0 100 120" className="h-full w-full filter drop-shadow-[0_0_12px_#ff7738]">
-                <defs>
-                  <linearGradient id="fireGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-                    <stop offset="0%" stopColor="#801000" />
-                    <stop offset="25%" stopColor="#e65c24" />
-                    <stop offset="65%" stopColor="#ff9b53" />
-                    <stop offset="100%" stopColor="#fff3b0" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M50 0 C65 30 90 55 90 85 C90 105 72 120 50 120 C28 120 10 105 10 85 C10 55 35 30 50 0 Z"
-                  fill="url(#fireGrad)"
-                />
-                <path
-                  d="M50 30 C58 50 72 65 72 88 C72 102 62 112 50 112 C38 112 28 102 28 88 C28 65 42 50 50 30 Z"
-                  fill="#ffe699"
-                  opacity="0.85"
-                />
-              </svg>
-            </div>
-
-            {/* Ash & Wood Base */}
-            <div className="h-3 w-16 rounded-full bg-[#18120d] border border-[#2b2017] shadow-[0_0_15px_#e65c24]" />
-          </div>
-
-          {/* Interactive REST AT BONFIRE Button Overlay */}
-          <button
-            type="button"
-            onClick={restAtBonfire}
-            className="mt-3 flex items-center gap-1.5 rounded-lg border border-gold/30 bg-[#14100c]/90 px-2.5 py-1 text-[11px] font-display font-bold tracking-wider text-gold hover:border-gold hover:bg-[#201912] shadow-[0_0_15px_rgba(226,179,104,0.15)] transition-all active:scale-95"
-          >
-            <span className="text-xs">🔥</span>
-            <span>{resting ? 'RESTED' : 'REST AT BONFIRE'}</span>
-          </button>
+    <div className="relative h-full min-h-[300px] sm:min-h-[330px] w-full overflow-hidden rounded-2xl border border-[#382d20] bg-gradient-to-b from-[#0a0807] via-[#110d0a] to-[#1a140f] p-4 shadow-[0_12px_36px_rgba(0,0,0,0.5)] flex flex-col justify-between">
+      {/* Background Blood Moon / Solar Eclipse */}
+      <div className="absolute right-6 top-6 h-12 w-12 sm:h-14 sm:w-14">
+        <div className="relative h-full w-full rounded-full bg-[#0d0a08] shadow-[0_0_20px_#e65c24,inset_-4px_-4px_12px_#ff9b53]">
+          <div className="absolute -inset-0.5 rounded-full border border-ember opacity-80 animate-pulse" />
         </div>
       </div>
 
-      {/* Level XP Progress Bar Card */}
-      <div className="rounded-xl border border-[#382d20] bg-[#14110e] p-3.5 shadow-md">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="font-display text-sm font-bold tracking-wider text-parchment">
-              LEVEL {level}
-            </span>
-            <span className="rounded bg-gold/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-gold">
-              {progressPercent}%
-            </span>
-          </div>
-          <span className="font-mono text-xs text-muted">
-            <strong className="text-parchment font-semibold">{currentXP}</strong> / {neededXP} XP
-          </span>
-        </div>
+      {/* Stars / Dust in sky */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-transparent via-black/20 to-black/80 pointer-events-none" />
 
-        {/* Ember Textured Progress Bar */}
-        <div className="relative h-4 w-full overflow-hidden rounded-full border border-[#2e261d] bg-[#0c0a08] p-0.5 shadow-inner">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-[#a83210] via-[#e65c24] to-[#ffd175] shadow-[0_0_12px_rgba(255,155,83,0.5)] transition-all duration-700 relative overflow-hidden"
-            style={{ width: `${progressPercent}%` }}
-          >
-            {/* Striped Texture overlay */}
-            <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,rgba(0,0,0,0.25)_5px,rgba(0,0,0,0.25)_10px)]" />
-          </div>
+      {/* Particle Canvas for Dynamic Embers */}
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 h-full w-full pointer-events-none z-10"
+      />
+
+      {/* Ground Floor Silhouette */}
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0e0b08] to-transparent border-b border-[#2e261d]" />
+      <div className="absolute bottom-3 left-6 right-6 h-1 bg-[#1c1612] rounded-full opacity-60" />
+
+      {/* Pixel Art Character Wearing Equipped Gear */}
+      <div className="absolute bottom-6 left-10 sm:left-14 flex flex-col items-center z-20">
+        <div className={`transition-transform duration-300 ${resting ? 'scale-95' : 'animate-knight-idle'}`}>
+          <PixelHeroSprite resting={resting} size={70} />
+        </div>
+        <div className="mt-2 rounded border border-[#2e261d] bg-[#100e0b] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-gold shadow-sm">
+          {profile?.username ?? 'HERO'}
         </div>
       </div>
 
-      {/* Four Core Abilities Card */}
-      <div className="rounded-xl border border-[#382d20] bg-[#14110e] p-3.5 shadow-md space-y-3">
-        <div className="flex items-center justify-between border-b border-[#262018] pb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm">🛡️</span>
-            <h4 className="font-display text-xs font-bold uppercase tracking-wider text-parchment">
-              CORE ABILITIES
-            </h4>
+      {/* Bonfire & Plunged Coiled Sword */}
+      <div className="absolute bottom-6 right-8 sm:right-14 flex flex-col items-center z-20">
+        {/* Flame & Sword Visual */}
+        <div className="relative flex flex-col items-center">
+          {/* Sword Blade */}
+          <div className="relative h-20 w-3 z-10 flex flex-col items-center">
+            {/* Pommel / Crossguard */}
+            <div className="h-2 w-7 rounded bg-[#9a9187] border border-[#d1c7bc] shadow-sm" />
+            <div className="h-4 w-1.5 bg-[#4a3f35]" />
+            {/* Blade */}
+            <div className="h-14 w-2 bg-gradient-to-b from-[#e5e5e5] via-[#a39f99] to-[#ff7738] rounded-b-sm border-x border-[#f5f5f5]/40" />
           </div>
-          <span className="font-mono text-[10px] text-muted-dark">MASTERY</span>
+
+          {/* Bonfire Flame */}
+          <div className="absolute -bottom-2 h-20 w-16 animate-flame z-20 pointer-events-none">
+            <svg viewBox="0 0 100 120" className="h-full w-full filter drop-shadow-[0_0_12px_#ff7738]">
+              <defs>
+                <linearGradient id="fireGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stopColor="#801000" />
+                  <stop offset="25%" stopColor="#e65c24" />
+                  <stop offset="65%" stopColor="#ff9b53" />
+                  <stop offset="100%" stopColor="#fff3b0" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M50 0 C65 30 90 55 90 85 C90 105 72 120 50 120 C28 120 10 105 10 85 C10 55 35 30 50 0 Z"
+                fill="url(#fireGrad)"
+              />
+              <path
+                d="M50 30 C58 50 72 65 72 88 C72 102 62 112 50 112 C38 112 28 102 28 88 C28 65 42 50 50 30 Z"
+                fill="#ffe699"
+                opacity="0.85"
+              />
+            </svg>
+          </div>
+
+          {/* Ash & Wood Base */}
+          <div className="h-3 w-16 rounded-full bg-[#18120d] border border-[#2b2017] shadow-[0_0_15px_#e65c24]" />
         </div>
 
-        <div className="space-y-2.5">
-          {[
-            {
-              name: 'STRENGTH',
-              icon: '⚔️',
-              matchKey: 'strength',
-              matchId: 1,
-              defaultVal: 18,
-              defaultXp: 45,
-              barColor: 'from-[#e65c24] to-[#ffd175]',
-              textColor: 'text-amber-300',
-            },
-            {
-              name: 'INTELLECT',
-              icon: '🧠',
-              matchKey: 'intellect',
-              matchId: 2,
-              defaultVal: 22,
-              defaultXp: 75,
-              barColor: 'from-[#2563eb] to-[#60a5fa]',
-              textColor: 'text-blue-300',
-            },
-            {
-              name: 'VITALITY',
-              icon: '❤️',
-              matchKey: 'vitality',
-              matchId: 5,
-              defaultVal: 16,
-              defaultXp: 30,
-              barColor: 'from-[#e11d48] to-[#fb7185]',
-              textColor: 'text-rose-300',
-            },
-            {
-              name: 'FOCUS',
-              icon: '✨',
-              matchKey: 'discipline',
-              matchId: 3,
-              defaultVal: 24,
-              defaultXp: 90,
-              barColor: 'from-[#ca8a04] to-[#fef08a]',
-              textColor: 'text-yellow-300',
-            },
-          ].map((ability) => {
-            const found = (attributes || []).find(
-              (a) =>
-                a.attribute_name?.toLowerCase().includes(ability.matchKey) ||
-                a.attribute_name?.toLowerCase().includes(ability.name.toLowerCase()) ||
-                a.attribute_id === ability.matchId
-            )
-            const val = found?.attribute_value ?? ability.defaultVal
-            const xp = (found?.attribute_xp ?? ability.defaultXp) % 100
-            const max = 100
-
-            return (
-              <div
-                key={ability.name}
-                className="group rounded-lg border border-[#262018] bg-[#0e0c0a] p-2.5 transition-all hover:border-gold/40 hover:bg-[#16120e]"
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base select-none">{ability.icon}</span>
-                    <span className={`font-display text-xs font-bold tracking-wider ${ability.textColor}`}>
-                      {ability.name}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-xs font-black text-gold">
-                      LVL {val}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="space-y-1">
-                  <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-[#181410] border border-[#2e261d]">
-                    <div
-                      className={`h-full rounded-full bg-gradient-to-r ${ability.barColor} transition-all duration-500`}
-                      style={{ width: `${(xp / max) * 100}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[9px] font-mono text-muted-dark">
-                    <span>PROGRESS</span>
-                    <span>{xp} / {max} XP</span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        {/* Interactive REST AT BONFIRE Button Overlay */}
+        <button
+          type="button"
+          onClick={restAtBonfire}
+          className="mt-3 flex items-center gap-1.5 rounded-lg border border-gold/30 bg-[#14100c]/90 px-3 py-1 text-[11px] font-display font-bold tracking-wider text-gold hover:border-gold hover:bg-[#201912] shadow-[0_0_15px_rgba(226,179,104,0.15)] transition-all active:scale-95"
+        >
+          <span className="text-xs">🔥</span>
+          <span>{resting ? 'RESTED' : 'REST AT BONFIRE'}</span>
+        </button>
       </div>
     </div>
   )
