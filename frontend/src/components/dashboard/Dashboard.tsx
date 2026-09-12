@@ -66,19 +66,16 @@ export function Dashboard() {
             </div>
           )}
 
-          {/* Axiom Codex Banner */}
-          <AxiomBanner />
-
           {/* Tab Views */}
           {activeTab === 'sanctuary' && (
-            <div className="grid gap-6 lg:grid-cols-[minmax(320px,440px)_1fr]">
-              {/* Left Column: Bonfire & Level Bar */}
+            <div className="grid gap-6 lg:grid-cols-[minmax(320px,420px)_1fr]">
+              {/* Left Column: Bonfire & Level Progress */}
               <div>
                 <BonfireScene />
               </div>
 
               {/* Right Column: World Boss & Quest Board */}
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <BossRaidWidget />
                 <QuestBoard
                   quests={tasks}
@@ -98,6 +95,9 @@ export function Dashboard() {
           {activeTab === 'rewards' && <RewardsView />}
           {activeTab === 'armory' && <ArmoryView />}
           {activeTab === 'chronicles' && <ChroniclesView />}
+
+          {/* Ambient Axiom Inscription at bottom */}
+          <AxiomBanner />
           </div>
         </main>
       </div>
