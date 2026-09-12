@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Sidebar } from '../layout/Sidebar'
 import { TopHeader } from '../layout/TopHeader'
 import { AxiomBanner } from './AxiomBanner'
 import { BonfireScene } from '../character/BonfireScene'
 import { BossRaidWidget } from './BossRaidWidget'
 import { QuestBoard } from '../quests/QuestBoard'
+import { CreateQuestModal } from '../quests/CreateQuestModal'
 import { AttributesView } from '../views/AttributesView'
 import { RewardsView } from '../views/RewardsView'
 import { ArmoryView } from '../views/ArmoryView'
@@ -14,6 +15,7 @@ import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 
 export function Dashboard() {
+  const [createQuestOpen, setCreateQuestOpen] = useState(false)
   const accessToken = useAuthStore((state) => state.accessToken)
   const preview = useAuthStore((state) => state.preview)
   const {
@@ -69,9 +71,9 @@ export function Dashboard() {
           {/* Tab Views */}
           {activeTab === 'sanctuary' && (
             <div className="grid gap-6 lg:grid-cols-[minmax(320px,420px)_1fr]">
-              {/* Left Column: Bonfire & Level Progress */}
+              {/* Left Column: Bonfire & Level Progress & Post Quest Button */}
               <div>
-                <BonfireScene />
+                <BonfireScene onOpenQuestModal={() => setCreateQuestOpen(true)} />
               </div>
 
               {/* Right Column: World Boss & Quest Board */}
@@ -83,9 +85,7 @@ export function Dashboard() {
                   onComplete={async (taskId) => {
                     if (accessToken) await completeQuest(accessToken, taskId)
                   }}
-                  onCreate={async (input) => {
-                    if (accessToken) await addQuest(accessToken, input)
-                  }}
+                  onOpenCreateModal={() => setCreateQuestOpen(true)}
                 />
               </div>
             </div>
@@ -104,6 +104,16 @@ export function Dashboard() {
 
       {/* Global Celebratory Rewards & Level Up Overlay */}
       <CelebrationModal />
+
+      {/* Dialog Modal for Inscribing New Quests */}
+      <CreateQuestModal
+        isOpen={createQuestOpen}
+        onClose={() => setCreateQuestOpen(false)}
+        busy={loading || syncing}
+        onCreate={async (input) => {
+          if (accessToken) await addQuest(accessToken, input)
+        }}
+      />
     </div>
   )
 }

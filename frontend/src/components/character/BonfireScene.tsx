@@ -1,8 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { useGameStore } from '../../store/gameStore'
+import { soundFx } from '../../lib/audio'
 import { PixelHeroSprite } from './PixelHeroSprite'
 
-export function BonfireScene() {
+interface BonfireSceneProps {
+  onOpenQuestModal?: () => void
+}
+
+export function BonfireScene({ onOpenQuestModal }: BonfireSceneProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const { profile, resting, restAtBonfire } = useGameStore()
 
@@ -215,6 +220,27 @@ export function BonfireScene() {
           </div>
         </div>
       </div>
+
+      {/* Post New Quest Button Below Level */}
+      {onOpenQuestModal && (
+        <button
+          type="button"
+          onClick={() => {
+            soundFx.playClick()
+            onOpenQuestModal()
+          }}
+          className="group flex w-full items-center justify-between rounded-xl border border-[#4a3a24] bg-gradient-to-r from-[#17120c] via-[#1c160f] to-[#140f0a] px-4 py-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.4)] transition-all hover:border-gold/60 hover:shadow-[0_0_20px_rgba(226,179,104,0.15)] active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="font-display text-xs sm:text-sm font-bold tracking-wider text-gold group-hover:text-gold-bright transition-colors">
+              + POST NEW QUEST TO NOTICE BOARD
+            </span>
+          </div>
+          <span className="font-mono text-xs text-gold/70 group-hover:text-gold group-hover:translate-x-0.5 transition-all">
+            ▼
+          </span>
+        </button>
+      )}
     </div>
   )
 }
