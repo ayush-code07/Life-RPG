@@ -606,25 +606,26 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   addQuest: async (accessToken, input) => {
     soundFx.playClick()
-    set({ syncing: true, error: null })
-    try {
-      if (accessToken === PREVIEW_TOKEN) {
-        const created: Task = {
-          task_id: Date.now(),
-          profile_id: 'preview-hero',
-          title: input.title,
-          description: input.description ?? null,
-          difficulty: input.difficulty,
-          xp_reward: XP_BY_DIFFICULTY[input.difficulty],
-          status: 'active',
-          due_date: null,
-          created_at: new Date().toISOString(),
-          tags: input.tags ?? [],
-        }
-        set({ tasks: [created, ...get().tasks], syncing: false })
-        return
-      }
+    const tempId = Date.now()
+    const optimisticTask: Task = {
+      task_id: tempId,
+      profile_id: get().profile?.id ?? 'hero',
+      title: input.title,
+      description: input.description ?? null,
+      difficulty: input.difficulty,
+      xp_reward: XP_BY_DIFFICULTY[input.difficulty],
+      status: 'active',
+      due_date: null,
+      created_at: new Date().toISOString(),
+      tags: input.tags ?? [],
+    }
 
+    // Instantly append to state for zero-latency client response
+    set({ tasks: [optimisticTask, ...get().tasks], syncing: false, error: null })
+
+    if (accessToken === PREVIEW_TOKEN) return
+
+    try {
       // Encode tags into description if present so it persists in backend
       let finalDescription = input.description || ''
       if (input.tags && input.tags.length > 0) {
@@ -639,14 +640,19 @@ export const useGameStore = create<GameState>((set, get) => ({
         xp_reward: XP_BY_DIFFICULTY[input.difficulty],
         status: 'active',
       })
-      const taskWithTags: Task = {
-        ...created,
-        tags: input.tags ?? [],
-      }
-      set({ tasks: [taskWithTags, ...get().tasks], syncing: false })
+
+      // Silently reconcile temporary task with server record
+      set((s) => ({
+        tasks: s.tasks.map((t) =>
+          t.task_id === tempId ? { ...created, tags: input.tags ?? [] } : t
+        ),
+      }))
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not create quest.'
-      set({ error: message, syncing: false })
+      // Revert optimistic task on failure
+      set((s) => ({
+        tasks: s.tasks.filter((t) => t.task_id !== tempId),
+        error: 'Failed to record quest to database. Please check connection.',
+      }))
       throw error
     }
   },

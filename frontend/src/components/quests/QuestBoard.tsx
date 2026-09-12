@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion'
 import { soundFx } from '../../lib/audio'
 import type { Task, TaskDifficulty } from '../../types/rpg'
 import { QuestItem } from './QuestItem'
+import { QuestBoardSkeleton } from '../ui/Skeleton'
 
 export const AVAILABLE_TAGS = [
   { name: 'Work', icon: '💼', color: 'border-blue-500/30 bg-blue-500/10 text-blue-300' },
@@ -146,7 +147,9 @@ export function QuestBoard({ quests, busy, onComplete, onCreate }: QuestBoardPro
       </div>
 
       {/* Quests List */}
-      {filteredQuests.length === 0 ? (
+      {busy && quests.length === 0 ? (
+        <QuestBoardSkeleton count={4} />
+      ) : filteredQuests.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[#382d20] bg-[#120f0c]/50 px-4 py-8 text-center text-sm text-muted">
           <p className="font-display">No quests in this chamber.</p>
           <p className="mt-1 text-xs text-muted-dark">Post a new trial above to begin earning XP and striking the Behemoth.</p>
