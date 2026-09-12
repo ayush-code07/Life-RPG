@@ -159,6 +159,13 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
   },
 ]
 
+export interface CelebrationState {
+  type: 'LEVEL_UP' | 'ITEM_PURCHASED'
+  level?: number
+  coinsEarned?: number
+  item?: ShopItem
+}
+
 interface GameState {
   profile: Profile | null
   attributes: ProfileAttribute[]
@@ -176,6 +183,7 @@ interface GameState {
   syncing: boolean
   error: string | null
   lastCompletion: TaskCompletionResponse | null
+  celebration: CelebrationState | null
 
   // Actions
   hydrate: (accessToken: string) => Promise<void>
@@ -190,6 +198,8 @@ interface GameState {
   toggleSfx: () => void
   toggleCrt: () => void
   restAtBonfire: () => void
+  dismissCelebration: () => void
+  triggerCelebration: (data: CelebrationState) => void
   clearError: () => void
   reset: () => void
 }
@@ -273,10 +283,25 @@ export const useGameStore = create<GameState>((set, get) => ({
   syncing: false,
   error: null,
   lastCompletion: null,
+  celebration: null,
 
   setActiveTab: (tab) => {
     soundFx.playClick()
     set({ activeTab: tab })
+  },
+
+  dismissCelebration: () => {
+    soundFx.playClick()
+    set({ celebration: null })
+  },
+
+  triggerCelebration: (data) => {
+    if (data.type === 'LEVEL_UP') {
+      soundFx.playLevelUp()
+    } else if (data.type === 'ITEM_PURCHASED') {
+      soundFx.playPurchaseSound()
+    }
+    set({ celebration: data })
   },
 
   toggleSfx: () => {
@@ -343,6 +368,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       coins: newCoins,
       shopItems: updatedShop,
       inventory: [newInvItem, ...get().inventory],
+      celebration: {
+        type: 'ITEM_PURCHASED',
+        item: { ...item, isPurchased: true, isEquipped: true },
+      },
       error: null,
     })
     return true
@@ -527,6 +556,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         set({
           coins: updatedCoins,
           lastCompletion: result,
+          celebration: gained.levelsGained > 0 ? {
+            type: 'LEVEL_UP',
+            level: gained.newLevel,
+            coinsEarned: gained.levelsGained * 10,
+          } : null,
           syncing: false,
           profile: applyCompletionToProfile(current, result),
         })
@@ -554,6 +588,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({
         coins: updatedCoins,
         lastCompletion: result,
+        celebration: levelsGained > 0 ? {
+          type: 'LEVEL_UP',
+          level: result.profile.current_level,
+          coinsEarned: levelsGained * 10,
+        } : null,
         syncing: false,
         profile: applyCompletionToProfile(get().profile, result),
       })

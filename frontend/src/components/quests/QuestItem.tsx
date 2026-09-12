@@ -159,19 +159,31 @@ export function QuestItem({ quest, onComplete, disabled }: QuestItemProps) {
         <span className="text-sm font-bold">›</span>
       </div>
 
-      {/* Floating XP Reward Burst Animation */}
+      {/* Floating XP & Coin Reward Burst Animation */}
       <AnimatePresence>
         {burst && (
-          <motion.span
-            aria-hidden="true"
-            className="pointer-events-none absolute right-6 top-2 font-display text-sm font-bold text-moss drop-shadow-[0_0_8px_#48bb78]"
-            initial={{ opacity: 0, y: 10, scale: 0.8 }}
-            animate={{ opacity: 1, y: -20, scale: 1.1 }}
-            exit={{ opacity: 0, y: -35 }}
-            transition={{ duration: 0.6 }}
-          >
-            +{quest.xp_reward} XP!
-          </motion.span>
+          <div className="pointer-events-none absolute right-4 -top-3 z-30 flex flex-col items-end gap-1">
+            <motion.span
+              aria-hidden="true"
+              className="font-display text-sm font-black text-moss drop-shadow-[0_0_12px_#48bb78]"
+              initial={{ opacity: 0, y: 15, scale: 0.6 }}
+              animate={{ opacity: 1, y: -15, scale: 1.2 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.7 }}
+            >
+              +{quest.xp_reward} XP!
+            </motion.span>
+            <motion.span
+              aria-hidden="true"
+              className="font-mono text-xs font-black text-gold-bright drop-shadow-[0_0_10px_#fbbf24]"
+              initial={{ opacity: 0, y: 10, scale: 0.6 }}
+              animate={{ opacity: 1, y: -8, scale: 1.1 }}
+              exit={{ opacity: 0, y: -25 }}
+              transition={{ duration: 0.7, delay: 0.15 }}
+            >
+              +1 🪙 COIN!
+            </motion.span>
+          </div>
         )}
       </AnimatePresence>
     </motion.li>

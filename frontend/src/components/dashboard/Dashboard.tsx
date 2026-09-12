@@ -9,6 +9,7 @@ import { AttributesView } from '../views/AttributesView'
 import { RewardsView } from '../views/RewardsView'
 import { ArmoryView } from '../views/ArmoryView'
 import { ChroniclesView } from '../views/ChroniclesView'
+import { CelebrationModal } from '../ui/CelebrationModal'
 import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 
@@ -100,6 +101,9 @@ export function Dashboard() {
           </div>
         </main>
       </div>
+
+      {/* Global Celebratory Rewards & Level Up Overlay */}
+      <CelebrationModal />
     </div>
   )
 }
