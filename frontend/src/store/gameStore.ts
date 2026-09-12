@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { rpgApi, ApiError } from '../lib/api'
-import { applyXPGain } from '../lib/progression'
+import { applyXPGain, applyAttributeXPGain } from '../lib/progression'
+import { categorizeTaskAttributes } from '../lib/attributeMapping'
 import { soundFx } from '../lib/audio'
 import { PREVIEW_TOKEN, previewAttributes, previewProfile, previewTasks } from '../lib/previewData'
 import { useAuthStore } from './authStore'
@@ -538,6 +539,21 @@ export const useGameStore = create<GameState>((set, get) => ({
     })
 
     try {
+      const attrBonuses = categorizeTaskAttributes(target.title, target.tags, target.difficulty)
+      const currentAttributes = get().attributes
+      const updatedAttributes = currentAttributes.map((attr) => {
+        const match = attrBonuses.find((b) => b.attributeName.toLowerCase() === (attr.attribute_name ?? '').toLowerCase())
+        if (match) {
+          const gained = applyAttributeXPGain(attr.attribute_value, Number(attr.attribute_xp), match.xpValue)
+          return {
+            ...attr,
+            attribute_value: gained.newValue,
+            attribute_xp: gained.newXP,
+          }
+        }
+        return attr
+      })
+
       if (accessToken === PREVIEW_TOKEN) {
         const current = get().profile ?? previewProfile
         const gained = applyXPGain(current.current_level, current.total_xp, target.xp_reward)
@@ -573,6 +589,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
         set({
           coins: updatedCoins,
+          attributes: updatedAttributes,
           lastCompletion: result,
           celebration: gained.levelsGained > 0 ? {
             type: 'LEVEL_UP',
@@ -603,8 +620,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Persist coins to PostgreSQL database in background
       rpgApi.updateProfile(accessToken, { coins: updatedCoins }).catch(() => { })
 
+      // Reconcile attributes from server response or local advancements
+      const finalAttributes = result.attribute_advancements && result.attribute_advancements.length > 0
+        ? currentAttributes.map((attr) => {
+            const adv = result.attribute_advancements?.find((a) => a.attribute_id === attr.attribute_id)
+            return adv ? { ...attr, attribute_value: adv.new_value, attribute_xp: adv.new_xp } : attr
+          })
+        : updatedAttributes
+
       set({
         coins: updatedCoins,
+        attributes: finalAttributes,
         lastCompletion: result,
         celebration: levelsGained > 0 ? {
           type: 'LEVEL_UP',

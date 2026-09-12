@@ -41,3 +41,26 @@ export function applyXPGain(currentLevel: number, currentTotalXP: number, xpGain
     xpNeededForNext: nextThreshold - currentThreshold,
   }
 }
+
+export function applyAttributeXPGain(
+  currentValue: number,
+  currentAttributeXP: number,
+  xpGained: number
+): {
+  newValue: number
+  newXP: number
+  valueGained: number
+} {
+  const progression = applyXPGain(
+    Math.max(1, currentValue || 1),
+    currentAttributeXP || 0,
+    xpGained
+  )
+
+  return {
+    newValue: progression.newLevel,
+    newXP: progression.newTotalXP,
+    valueGained: progression.levelsGained,
+  }
+}
+

@@ -1,6 +1,7 @@
 import { useState, type FormEvent, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { soundFx } from '../../lib/audio'
+import { categorizeTaskAttributes } from '../../lib/attributeMapping'
 import type { TaskDifficulty } from '../../types/rpg'
 import { AVAILABLE_TAGS } from './QuestBoard'
 
@@ -226,6 +227,26 @@ export function CreateQuestModal({ isOpen, onClose, busy, onCreate }: CreateQues
                   <option value={4}>Tier 4 — Master (+150 XP, +1 Coin)</option>
                   <option value={5}>Tier 5 — Legendary (+250 XP, +1 Coin)</option>
                 </select>
+              </div>
+
+              {/* Dynamic Attribute Growth Live Preview */}
+              <div className="rounded-xl border border-gold/25 bg-gold/5 p-3 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-base">📈</span>
+                  <div>
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-gold">
+                      CHARACTER STAT MASTERY GAIN
+                    </p>
+                    <div className="flex flex-wrap gap-2 mt-0.5">
+                      {categorizeTaskAttributes(title || 'Trial', selectedTags, difficulty).map((attr) => (
+                        <span key={attr.attributeName} className={`font-mono text-[11px] font-bold flex items-center gap-1 ${attr.textColor}`}>
+                          <span>{attr.icon}</span>
+                          <span>+{attr.xpValue} {attr.attributeName} XP</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Actions */}

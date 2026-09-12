@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { soundFx } from '../../lib/audio'
+import { categorizeTaskAttributes } from '../../lib/attributeMapping'
 import type { Task } from '../../types/rpg'
 
 interface QuestItemProps {
@@ -9,24 +10,6 @@ interface QuestItemProps {
   onEdit?: (quest: Task) => void
   onDelete?: (taskId: number) => Promise<void> | void
   disabled?: boolean
-}
-
-// Map quest keywords to thematic RPG category icons & attribute bonuses
-function getQuestMeta(title: string, difficulty: number) {
-  const t = title.toLowerCase()
-  if (t.includes('read') || t.includes('book') || t.includes('study') || t.includes('learn')) {
-    return { icon: '📖', bonus: '+10 Intelligence', color: 'text-blue-400' }
-  }
-  if (t.includes('gym') || t.includes('workout') || t.includes('run') || t.includes('exercise') || t.includes('water')) {
-    return { icon: '🏋️', bonus: '+15 Strength', color: 'text-ember' }
-  }
-  if (t.includes('code') || t.includes('build') || t.includes('dev') || t.includes('project')) {
-    return { icon: '💻', bonus: '+15 Intelligence', color: 'text-cyan-400' }
-  }
-  if (t.includes('meditat') || t.includes('sleep') || t.includes('rest')) {
-    return { icon: '🧘', bonus: '+10 Discipline', color: 'text-purple-400' }
-  }
-  return { icon: '⚔️', bonus: `+${difficulty * 5} Mastery`, color: 'text-gold' }
 }
 
 export function QuestItem({ quest, onComplete, onEdit, onDelete, disabled }: QuestItemProps) {
@@ -40,7 +23,8 @@ export function QuestItem({ quest, onComplete, onEdit, onDelete, disabled }: Que
   }, [quest.status])
 
   const done = optimisticDone || quest.status === 'completed'
-  const meta = getQuestMeta(quest.title, quest.difficulty)
+  const attrRewards = categorizeTaskAttributes(quest.title, quest.tags, quest.difficulty)
+  const primaryIcon = attrRewards[0]?.icon ?? '⚔️'
 
   async function complete() {
     if (done || disabled || completingRef.current) return
@@ -102,8 +86,8 @@ export function QuestItem({ quest, onComplete, onEdit, onDelete, disabled }: Que
         </button>
 
         {/* Category Icon Badge */}
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#2e261d] bg-[#100d0a] text-base">
-          <span>{meta.icon}</span>
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#2e261d] bg-[#100d0a] text-base shadow-inner">
+          <span>{primaryIcon}</span>
         </div>
 
         {/* Quest Title and Reward Badges */}
@@ -117,14 +101,20 @@ export function QuestItem({ quest, onComplete, onEdit, onDelete, disabled }: Que
             {quest.title}
           </h4>
 
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
             <span className="rounded border border-ember/30 bg-ember/10 px-2 py-0.5 font-mono text-[11px] font-bold text-ember">
               +{quest.xp_reward} XP
             </span>
             <span className="text-muted-dark">•</span>
-            <span className={`font-mono text-[11px] ${meta.color}`}>
-              {meta.bonus}
-            </span>
+            {attrRewards.map((reward) => (
+              <span
+                key={reward.attributeName}
+                className={`rounded border px-1.5 py-0.5 font-mono text-[10px] font-semibold flex items-center gap-1 ${reward.badgeColor}`}
+              >
+                <span>{reward.icon}</span>
+                <span>+{reward.xpValue} {reward.attributeName}</span>
+              </span>
+            ))}
           </div>
 
           {/* Quest Tags */}
@@ -190,10 +180,10 @@ export function QuestItem({ quest, onComplete, onEdit, onDelete, disabled }: Que
         </div>
       </div>
 
-      {/* Floating XP & Coin Reward Burst Animation */}
+      {/* Floating XP & Coin & Attribute Reward Burst Animation */}
       <AnimatePresence>
         {burst && (
-          <div className="pointer-events-none absolute right-4 -top-3 z-30 flex flex-col items-end gap-1">
+          <div className="pointer-events-none absolute right-4 -top-5 z-30 flex flex-col items-end gap-1">
             <motion.span
               aria-hidden="true"
               className="font-display text-sm font-black text-moss drop-shadow-[0_0_12px_#48bb78]"
@@ -214,6 +204,19 @@ export function QuestItem({ quest, onComplete, onEdit, onDelete, disabled }: Que
             >
               +1 🪙 COIN!
             </motion.span>
+            {attrRewards.slice(0, 1).map((r) => (
+              <motion.span
+                key={r.attributeName}
+                aria-hidden="true"
+                className={`font-mono text-xs font-black drop-shadow-[0_0_10px_rgba(0,0,0,0.9)] ${r.textColor}`}
+                initial={{ opacity: 0, y: 5, scale: 0.6 }}
+                animate={{ opacity: 1, y: -2, scale: 1.1 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.7, delay: 0.25 }}
+              >
+                +{r.xpValue} {r.attributeName} XP!
+              </motion.span>
+            ))}
           </div>
         )}
       </AnimatePresence>
