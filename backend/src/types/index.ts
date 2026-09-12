@@ -19,6 +19,8 @@ export interface Profile {
   total_xp: number;
   coins: number;
   equipped_gear?: any[];
+  active_theme?: string;
+  active_badge?: string;
   current_streak: number;
   longest_streak: number;
   last_activity_date: string | null; // YYYY-MM-DD

@@ -5,7 +5,7 @@ export type ActiveTab = 'sanctuary' | 'attributes' | 'rewards' | 'armory' | 'chr
 export interface ShopItem {
   id: number
   name: string
-  type: 'weapon' | 'armor' | 'cloak' | 'shield' | 'relic'
+  type: 'weapon' | 'armor' | 'cloak' | 'shield' | 'relic' | 'theme' | 'badge'
   price: number
   description: string
   rarity: 'common' | 'rare' | 'epic' | 'legendary'
@@ -13,6 +13,8 @@ export interface ShopItem {
   statBonus: string
   isPurchased?: boolean
   isEquipped?: boolean
+  themeClass?: string
+  badgeTitle?: string
 }
 
 export interface Profile {
@@ -22,6 +24,8 @@ export interface Profile {
   total_xp: number
   coins?: number
   equipped_gear?: any[]
+  active_theme?: string
+  active_badge?: string
   current_streak: number
   longest_streak: number
   last_activity_date: string | null

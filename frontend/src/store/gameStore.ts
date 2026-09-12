@@ -26,6 +26,7 @@ export interface BossState {
 import type { ShopItem } from '../types/rpg'
 
 export const INITIAL_SHOP_ITEMS: ShopItem[] = [
+  // --- WEAPONS & COMBAT GEAR ---
   {
     id: 1,
     name: 'Silver Adventurer Sword',
@@ -39,6 +40,32 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     isEquipped: false,
   },
   {
+    id: 8,
+    name: 'Lantern Halberd Polearm',
+    type: 'weapon',
+    price: 90,
+    description: 'Ancient wooden polearm featuring an incandescent ember lantern on a brass hook.',
+    rarity: 'legendary',
+    icon: '🏮',
+    statBonus: '+35 Mastery • Dark Vision',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 12,
+    name: 'Sunfire Greatsword',
+    type: 'weapon',
+    price: 120,
+    description: 'A colossal two-handed blade bathed in eternal solar flame.',
+    rarity: 'legendary',
+    icon: '⚔️',
+    statBonus: '+50 Strength • Sunbeam Cleave',
+    isPurchased: false,
+    isEquipped: false,
+  },
+
+  // --- ARMOR, HELMETS & CLOAKS ---
+  {
     id: 2,
     name: 'Viking Horned Helmet',
     type: 'armor',
@@ -47,30 +74,6 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     rarity: 'common',
     icon: '🪖',
     statBonus: '+8 Focus • +5 Vitality',
-    isPurchased: false,
-    isEquipped: false,
-  },
-  {
-    id: 3,
-    name: 'Round Buckler Shield',
-    type: 'shield',
-    price: 20,
-    description: 'Solid oak round shield reinforced with a polished brass boss.',
-    rarity: 'rare',
-    icon: '🛡️',
-    statBonus: '+12 Vitality • +10 Defense',
-    isPurchased: false,
-    isEquipped: false,
-  },
-  {
-    id: 4,
-    name: 'Crimson Health Potion',
-    type: 'relic',
-    price: 25,
-    description: 'Glows with restorative life essence hitched directly to your adventurer belt.',
-    rarity: 'rare',
-    icon: '🧪',
-    statBonus: '+15 Max Stamina • Fast Regen',
     isPurchased: false,
     isEquipped: false,
   },
@@ -95,30 +98,6 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     rarity: 'epic',
     icon: '🎭',
     statBonus: '+20 Intellect • +15 Focus',
-    isPurchased: false,
-    isEquipped: false,
-  },
-  {
-    id: 7,
-    name: 'Companion Ghost Wisp',
-    type: 'relic',
-    price: 70,
-    description: 'A cute blue floating spectral pet hovering loyally beside your shoulder.',
-    rarity: 'epic',
-    icon: '👻',
-    statBonus: '+25 Discipline • Spirit Glow',
-    isPurchased: false,
-    isEquipped: false,
-  },
-  {
-    id: 8,
-    name: 'Lantern Halberd Polearm',
-    type: 'weapon',
-    price: 90,
-    description: 'Ancient wooden polearm featuring an incandescent ember lantern on a brass hook.',
-    rarity: 'legendary',
-    icon: '🏮',
-    statBonus: '+35 Mastery • Dark Vision',
     isPurchased: false,
     isEquipped: false,
   },
@@ -153,8 +132,193 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     price: 45,
     description: 'Crimson velvet mantle with gold trim that flows with momentum.',
     rarity: 'epic',
-    icon: '🥋',
+    icon: '🧣',
     statBonus: '+15 Mastery • 2x Streak Aura',
+    isPurchased: false,
+    isEquipped: false,
+  },
+
+  // --- SHIELDS & RELICS ---
+  {
+    id: 3,
+    name: 'Round Buckler Shield',
+    type: 'shield',
+    price: 20,
+    description: 'Solid oak round shield reinforced with a polished brass boss.',
+    rarity: 'rare',
+    icon: '🛡️',
+    statBonus: '+12 Vitality • +10 Defense',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 4,
+    name: 'Crimson Health Potion',
+    type: 'relic',
+    price: 25,
+    description: 'Glows with restorative life essence hitched directly to your adventurer belt.',
+    rarity: 'rare',
+    icon: '🧪',
+    statBonus: '+15 Max Stamina • Fast Regen',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 7,
+    name: 'Companion Ghost Wisp',
+    type: 'relic',
+    price: 70,
+    description: 'A cute blue floating spectral pet hovering loyally beside your shoulder.',
+    rarity: 'epic',
+    icon: '👻',
+    statBonus: '+25 Discipline • Spirit Glow',
+    isPurchased: false,
+    isEquipped: false,
+  },
+
+  // --- VIRTUAL THEMES ---
+  {
+    id: 20,
+    name: 'Midnight Ember Theme',
+    type: 'theme',
+    price: 15,
+    description: 'Deep obsidian shadows with glowing ember particles and solar eclipse accents.',
+    rarity: 'common',
+    icon: '🔥',
+    statBonus: 'Theme: Dark Medieval Bonfire',
+    themeClass: 'theme-midnight-ember',
+    isPurchased: true,
+    isEquipped: true,
+  },
+  {
+    id: 21,
+    name: 'Emerald Sanctuary Theme',
+    type: 'theme',
+    price: 35,
+    description: 'Verdant forest tones, soothing emerald ambient lighting, and calm vitality vibes.',
+    rarity: 'rare',
+    icon: '🌿',
+    statBonus: 'Theme: Jade Forest & Serenity',
+    themeClass: 'theme-emerald-sanctuary',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 22,
+    name: 'Astral Void Theme',
+    type: 'theme',
+    price: 55,
+    description: 'Deep cosmic starlight with pulsing stellar dust and arcane mystic ambiance.',
+    rarity: 'epic',
+    icon: '🌌',
+    statBonus: 'Theme: Cosmic Constellations',
+    themeClass: 'theme-astral-void',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 23,
+    name: 'Bloodforged Abyss Theme',
+    type: 'theme',
+    price: 75,
+    description: 'Fierce volcanic magma aesthetic with crimson rune flames and heavy boss aura.',
+    rarity: 'legendary',
+    icon: '🌋',
+    statBonus: 'Theme: Volcanic Crimson Magma',
+    themeClass: 'theme-bloodforged-abyss',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 24,
+    name: 'Ascendant Sol Theme',
+    type: 'theme',
+    price: 100,
+    description: 'Gilded palace radiance with radiant solar rays and celebratory gold lighting.',
+    rarity: 'legendary',
+    icon: '☀️',
+    statBonus: 'Theme: Radiant Gilded Palace',
+    themeClass: 'theme-ascendant-sol',
+    isPurchased: false,
+    isEquipped: false,
+  },
+
+  // --- PROFILE BADGES & TITLES ---
+  {
+    id: 30,
+    name: 'Vanquisher Crest',
+    type: 'badge',
+    price: 20,
+    description: 'Display the title "⚔️ Vanquisher of the Dark" proudly across your profile and top banner.',
+    rarity: 'rare',
+    icon: '⚔️',
+    statBonus: 'Title: ⚔️ Vanquisher of the Dark',
+    badgeTitle: '⚔️ Vanquisher of the Dark',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 31,
+    name: 'Archmage Crest',
+    type: 'badge',
+    price: 30,
+    description: 'Bestowed upon master coders, deep thinkers, and dedicated lifelong learners.',
+    rarity: 'rare',
+    icon: '🧠',
+    statBonus: 'Title: 🧠 Archmage Scholar',
+    badgeTitle: '🧠 Archmage Scholar',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 32,
+    name: 'Iron Sentinel Crest',
+    type: 'badge',
+    price: 40,
+    description: 'Unwavering focus, morning discipline adherence, and unbreakable resilience.',
+    rarity: 'epic',
+    icon: '🛡️',
+    statBonus: 'Title: 🛡️ Iron Sentinel',
+    badgeTitle: '🛡️ Iron Sentinel',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 33,
+    name: 'Flamekeeper Crest',
+    type: 'badge',
+    price: 60,
+    description: 'The sacred guardian of the eternal embers who never lets the bonfire die out.',
+    rarity: 'epic',
+    icon: '🔥',
+    statBonus: 'Title: 🔥 Flamekeeper',
+    badgeTitle: '🔥 Flamekeeper',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 34,
+    name: 'Mythic Conqueror Crest',
+    type: 'badge',
+    price: 80,
+    description: 'The highest honor for apex adventurers who conquer impossible daily trials.',
+    rarity: 'legendary',
+    icon: '👑',
+    statBonus: 'Title: 👑 Mythic Conqueror',
+    badgeTitle: '👑 Mythic Conqueror',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 35,
+    name: 'Diamond Will Crest',
+    type: 'badge',
+    price: 100,
+    description: 'A flawless diamond badge symbolizing zero missed daily quests and iron fortitude.',
+    rarity: 'legendary',
+    icon: '💎',
+    statBonus: 'Title: 💎 Diamond Will',
+    badgeTitle: '💎 Diamond Will',
     isPurchased: false,
     isEquipped: false,
   },
@@ -251,9 +415,20 @@ const getStoredCoins = (userId?: string): number => {
 const getStoredShopItems = (userId?: string): ShopItem[] => {
   if (typeof window === 'undefined') return INITIAL_SHOP_ITEMS
   try {
-    const key = userId ? `ashen_shop_items_${userId}` : 'ashen_shop_items_v3'
+    const key = userId ? `ashen_shop_items_${userId}` : 'ashen_shop_items_v4'
     const val = localStorage.getItem(key)
-    return val ? JSON.parse(val) : INITIAL_SHOP_ITEMS
+    if (!val) return INITIAL_SHOP_ITEMS
+    const stored: ShopItem[] = JSON.parse(val)
+    return INITIAL_SHOP_ITEMS.map((item) => {
+      const match = stored.find((s) => s.id === item.id)
+      return match
+        ? {
+            ...item,
+            isPurchased: match.isPurchased ?? item.isPurchased,
+            isEquipped: match.isEquipped ?? item.isEquipped,
+          }
+        : item
+    })
   } catch {
     return INITIAL_SHOP_ITEMS
   }
@@ -343,9 +518,18 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     const newCoins = currentCoins - item.price
-    const updatedShop = get().shopItems.map((i) =>
-      i.id === itemId ? { ...i, isPurchased: true, isEquipped: true } : i
-    )
+    const updatedShop = get().shopItems.map((i) => {
+      if (i.id === itemId) {
+        return { ...i, isPurchased: true, isEquipped: true }
+      }
+      if (item.type === 'theme' && i.type === 'theme') {
+        return { ...i, isEquipped: false }
+      }
+      if (item.type === 'badge' && i.type === 'badge') {
+        return { ...i, isEquipped: false }
+      }
+      return i
+    })
 
     // Add to inventory
     const newInvItem: InventoryItem = {
@@ -363,23 +547,43 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     soundFx.playPurchaseSound()
     const userId = get().profile?.id
+    const activeTheme = item.type === 'theme' ? (item.themeClass || 'theme-midnight-ember') : get().profile?.active_theme
+    const activeBadge = item.type === 'badge' ? (item.badgeTitle || item.name) : get().profile?.active_badge
+
     if (typeof window !== 'undefined') {
       const coinKey = userId ? `ashen_coins_${userId}` : 'ashen_coins'
-      const shopKey = userId ? `ashen_shop_items_${userId}` : 'ashen_shop_items_v3'
+      const shopKey = userId ? `ashen_shop_items_${userId}` : 'ashen_shop_items_v4'
       localStorage.setItem(coinKey, String(newCoins))
       localStorage.setItem(shopKey, JSON.stringify(updatedShop))
+      if (item.type === 'theme') {
+        localStorage.setItem(`ashen_theme_${userId || 'default'}`, activeTheme || 'theme-midnight-ember')
+      }
+      if (item.type === 'badge') {
+        localStorage.setItem(`ashen_badge_${userId || 'default'}`, activeBadge || '')
+      }
     }
 
     // Persist to PostgreSQL database in background
     const token = useAuthStore.getState().accessToken
     if (token && token !== PREVIEW_TOKEN) {
-      rpgApi.updateProfile(token, { coins: newCoins, equipped_gear: updatedShop }).catch(() => { })
+      rpgApi.updateProfile(token, {
+        coins: newCoins,
+        equipped_gear: updatedShop,
+        active_theme: activeTheme,
+        active_badge: activeBadge,
+      }).catch(() => { })
     }
 
     set({
       coins: newCoins,
       shopItems: updatedShop,
       inventory: [newInvItem, ...get().inventory],
+      profile: get().profile ? {
+        ...get().profile!,
+        coins: newCoins,
+        active_theme: activeTheme,
+        active_badge: activeBadge,
+      } : null,
       celebration: {
         type: 'ITEM_PURCHASED',
         item: { ...item, isPurchased: true, isEquipped: true },
@@ -391,40 +595,92 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   equipItem: (itemId: number) => {
     soundFx.playClick()
+    const target = get().shopItems.find((i) => i.id === itemId)
+    if (!target || !target.isPurchased) return
+
+    const nextEquipped = !target.isEquipped
+
     const updatedShop = get().shopItems.map((i) => {
       if (i.id === itemId) {
-        return { ...i, isEquipped: !i.isEquipped }
+        return { ...i, isEquipped: nextEquipped }
+      }
+      if (target.type === 'theme' && nextEquipped && i.type === 'theme') {
+        return { ...i, isEquipped: false }
+      }
+      if (target.type === 'badge' && nextEquipped && i.type === 'badge') {
+        return { ...i, isEquipped: false }
       }
       return i
     })
+
     const updatedInv = get().inventory.map((inv) => {
       if (inv.item_id === itemId) {
-        return { ...inv, equipped: !inv.equipped }
+        return { ...inv, equipped: nextEquipped }
+      }
+      if (target.type === 'theme' && nextEquipped && inv.item_type === 'theme') {
+        return { ...inv, equipped: false }
+      }
+      if (target.type === 'badge' && nextEquipped && inv.item_type === 'badge') {
+        return { ...inv, equipped: false }
       }
       return inv
     })
 
+    let activeTheme = get().profile?.active_theme || 'theme-midnight-ember'
+    if (target.type === 'theme') {
+      activeTheme = nextEquipped ? (target.themeClass || 'theme-midnight-ember') : 'theme-midnight-ember'
+    }
+
+    let activeBadge = get().profile?.active_badge || ''
+    if (target.type === 'badge') {
+      activeBadge = nextEquipped ? (target.badgeTitle || target.name) : ''
+    }
+
     const userId = get().profile?.id
     if (typeof window !== 'undefined') {
-      const shopKey = userId ? `ashen_shop_items_${userId}` : 'ashen_shop_items_v3'
+      const shopKey = userId ? `ashen_shop_items_${userId}` : 'ashen_shop_items_v4'
       localStorage.setItem(shopKey, JSON.stringify(updatedShop))
+      if (target.type === 'theme') {
+        localStorage.setItem(`ashen_theme_${userId || 'default'}`, activeTheme)
+      }
+      if (target.type === 'badge') {
+        localStorage.setItem(`ashen_badge_${userId || 'default'}`, activeBadge)
+      }
     }
 
     // Persist to PostgreSQL database in background
     const token = useAuthStore.getState().accessToken
     if (token && token !== PREVIEW_TOKEN) {
-      rpgApi.updateProfile(token, { equipped_gear: updatedShop }).catch(() => { })
+      rpgApi.updateProfile(token, {
+        equipped_gear: updatedShop,
+        active_theme: activeTheme,
+        active_badge: activeBadge,
+      }).catch(() => { })
     }
 
-    set({ shopItems: updatedShop, inventory: updatedInv })
+    set({
+      shopItems: updatedShop,
+      inventory: updatedInv,
+      profile: get().profile ? {
+        ...get().profile!,
+        active_theme: activeTheme,
+        active_badge: activeBadge,
+      } : null,
+    })
   },
 
   clearError: () => set({ error: null }),
 
   hydrate: async (accessToken) => {
     if (accessToken === PREVIEW_TOKEN) {
+      const localCoins = getStoredCoins('preview')
+      const localShop = getStoredShopItems('preview')
+      const localTheme = typeof window !== 'undefined' ? localStorage.getItem('ashen_theme_preview') || 'theme-midnight-ember' : 'theme-midnight-ember'
+      const localBadge = typeof window !== 'undefined' ? localStorage.getItem('ashen_badge_preview') || '' : ''
       set({
-        profile: previewProfile,
+        profile: { ...previewProfile, coins: localCoins, active_theme: localTheme, active_badge: localBadge },
+        coins: localCoins,
+        shopItems: localShop,
         tasks: previewTasks,
         attributes: previewAttributes,
         inventory: [
@@ -432,24 +688,13 @@ export const useGameStore = create<GameState>((set, get) => ({
             inventory_id: 1,
             profile_id: 'preview',
             item_id: 1,
-            item_name: 'Ashen Greatsword',
+            item_name: 'Silver Adventurer Sword',
             item_type: 'weapon',
-            description: 'Forged in the embers of the First Kiln.',
-            rarity: 'epic',
+            description: 'Forged tempered iron shortsword. Adds clean strike damage to your character.',
+            rarity: 'rare',
             quantity: 1,
             acquired_at: new Date().toISOString(),
             equipped: true,
-          },
-          {
-            inventory_id: 2,
-            profile_id: 'preview',
-            item_id: 2,
-            item_name: 'Flask of Crimson Embers',
-            item_type: 'consumable',
-            description: 'Restores stamina and clears cognitive fatigue.',
-            rarity: 'rare',
-            quantity: 3,
-            acquired_at: new Date().toISOString(),
           },
         ],
         loading: false,

@@ -10,14 +10,22 @@ export function TopHeader() {
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
   const heroName = profile?.username ? profile.username.toUpperCase() : 'ASHEN HERO'
+  const activeBadge = profile?.active_badge || ''
 
   return (
     <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#262018] pb-4">
       {/* Hero Identity */}
       <div>
-        <p className="font-mono text-[11px] tracking-widest text-muted uppercase">
-          {greeting}, Soulbearer
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="font-mono text-[11px] tracking-widest text-muted uppercase">
+            {greeting}, Soulbearer
+          </p>
+          {activeBadge && (
+            <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 font-mono text-[10px] font-bold text-gold shadow-[0_0_8px_rgba(226,179,104,0.2)]">
+              {activeBadge}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-3 mt-0.5">
           <h2 className="font-display text-2xl sm:text-3xl font-black tracking-wide text-parchment">
             {heroName}

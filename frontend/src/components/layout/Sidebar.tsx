@@ -90,6 +90,14 @@ export function Sidebar() {
             </span>
           </div>
 
+          {profile?.active_badge && (
+            <div className="mt-1.5 truncate">
+              <span className="font-mono text-[10px] text-gold/90 font-medium">
+                {profile.active_badge}
+              </span>
+            </div>
+          )}
+
           <div className="mt-3 flex items-center justify-between border-t border-[#262018] pt-2 text-xs">
             <div className="flex items-center gap-1.5 text-muted">
               <span className="text-gold">🪙</span>

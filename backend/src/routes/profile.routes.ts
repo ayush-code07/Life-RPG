@@ -16,6 +16,8 @@ const updateProfileSchema = z.object({
       .optional(),
     coins: z.number().int().min(0).optional(),
     equipped_gear: z.array(z.any()).optional(),
+    active_theme: z.string().optional(),
+    active_badge: z.string().optional(),
   }),
 });
 

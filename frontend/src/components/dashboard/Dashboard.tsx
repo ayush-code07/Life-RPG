@@ -36,12 +36,14 @@ export function Dashboard() {
     clearError,
   } = useGameStore()
 
+  const activeTheme = useGameStore((state) => state.profile?.active_theme) || 'theme-midnight-ember'
+
   useEffect(() => {
     if (accessToken) void hydrate(accessToken)
   }, [accessToken, hydrate])
 
   return (
-    <div className={`h-screen w-screen overflow-hidden bg-[#0a0908] text-parchment ${crtEnabled ? 'crt-overlay' : ''}`}>
+    <div className={`h-screen w-screen overflow-hidden text-parchment ${activeTheme} ${crtEnabled ? 'crt-overlay' : ''}`}>
       <div className="flex flex-col lg:flex-row h-full w-full overflow-hidden">
         {/* Left Sidebar */}
         <Sidebar />

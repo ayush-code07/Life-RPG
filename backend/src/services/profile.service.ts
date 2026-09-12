@@ -8,16 +8,18 @@ export class ProfileService {
    * Retrieves profile by user UUID, computing dynamic level progression metrics
    */
   static async getProfileById(userId: string): Promise<any> {
-    // Ensure table has coins and equipped_gear columns
+    // Ensure table has coins, equipped_gear, active_theme, active_badge columns
     try {
       await query(`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS coins INTEGER NOT NULL DEFAULT 25;`);
       await query(`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS equipped_gear JSONB NOT NULL DEFAULT '[]'::jsonb;`);
+      await query(`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS active_theme TEXT NOT NULL DEFAULT 'default';`);
+      await query(`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS active_badge TEXT NOT NULL DEFAULT '';`);
     } catch {
       // Ignore if columns or permissions already set
     }
 
     const { rows } = await query(
-      `SELECT id, username, current_level, total_xp, coins, equipped_gear, current_streak, longest_streak, 
+      `SELECT id, username, current_level, total_xp, coins, equipped_gear, active_theme, active_badge, current_streak, longest_streak, 
               last_activity_date, created_at
        FROM public.profiles
        WHERE id = $1`,
@@ -36,6 +38,8 @@ export class ProfileService {
       ...profile,
       coins: profile.coins ?? 25,
       equipped_gear: profile.equipped_gear ?? [],
+      active_theme: profile.active_theme ?? 'default',
+      active_badge: profile.active_badge ?? '',
       progress_xp: Number(profile.total_xp) - currentThreshold,
       xp_needed_for_next: nextThreshold - currentThreshold,
       next_level_threshold: nextThreshold,
@@ -43,11 +47,11 @@ export class ProfileService {
   }
 
   /**
-   * Updates profile fields like username, coins, or equipped_gear
+   * Updates profile fields like username, coins, equipped_gear, active_theme, or active_badge
    */
   static async updateProfile(
     userId: string,
-    updates: { username?: string; coins?: number; equipped_gear?: any[] }
+    updates: { username?: string; coins?: number; equipped_gear?: any[]; active_theme?: string; active_badge?: string }
   ): Promise<Profile> {
     const fields: string[] = [];
     const values: any[] = [];
@@ -68,6 +72,16 @@ export class ProfileService {
       values.push(JSON.stringify(updates.equipped_gear));
     }
 
+    if (updates.active_theme !== undefined) {
+      fields.push(`active_theme = $${idx++}`);
+      values.push(updates.active_theme);
+    }
+
+    if (updates.active_badge !== undefined) {
+      fields.push(`active_badge = $${idx++}`);
+      values.push(updates.active_badge);
+    }
+
     if (fields.length === 0) {
       return (await this.getProfileById(userId)) as Profile;
     }
@@ -78,7 +92,7 @@ export class ProfileService {
       `UPDATE public.profiles
        SET ${fields.join(', ')}
        WHERE id = $${idx}
-       RETURNING id, username, current_level, total_xp, coins, equipped_gear, current_streak, longest_streak, last_activity_date, created_at`,
+       RETURNING id, username, current_level, total_xp, coins, equipped_gear, active_theme, active_badge, current_streak, longest_streak, last_activity_date, created_at`,
       values
     );
 

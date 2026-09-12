@@ -3,7 +3,7 @@ import { soundFx } from '../../lib/audio'
 import { useGameStore } from '../../store/gameStore'
 import { PixelHeroSprite } from '../character/PixelHeroSprite'
 
-type ShopFilter = 'all' | 'weapon' | 'armor' | 'cloak' | 'shield' | 'relic'
+type ShopFilter = 'all' | 'gear' | 'theme' | 'badge'
 
 const RARITY_THEMES: Record<string, { border: string; bg: string; badge: string; text: string }> = {
   common: {
@@ -37,11 +37,18 @@ export function RewardsView() {
   const { coins, shopItems, buyItem, equipItem, profile } = useGameStore()
 
   const level = profile?.current_level ?? 3
-  const equippedCount = shopItems.filter((i) => i.isEquipped).length
+  const activeBadge = profile?.active_badge || ''
+  const activeTheme = profile?.active_theme || 'theme-midnight-ember'
+  const equippedGearCount = shopItems.filter(
+    (i) => i.isEquipped && i.type !== 'theme' && i.type !== 'badge'
+  ).length
 
   const filteredItems = shopItems.filter((item) => {
     if (filter === 'all') return true
-    return item.type === filter
+    if (filter === 'gear') return item.type !== 'theme' && item.type !== 'badge'
+    if (filter === 'theme') return item.type === 'theme'
+    if (filter === 'badge') return item.type === 'badge'
+    return true
   })
 
   return (
@@ -56,7 +63,7 @@ export function RewardsView() {
             </h2>
           </div>
           <p className="mt-1 text-xs text-muted">
-            Earn coins by completing quests (+1 coin) and leveling up (+10 coins). Purchase gear to equip and customize your character sprite!
+            Earn coins by completing quests (+1 coin) and leveling up (+10 coins). Purchase virtual gear, environmental themes, and profile badges!
           </p>
         </div>
 
@@ -73,7 +80,7 @@ export function RewardsView() {
       {/* Hero Live Dressing Pedestal & Intro */}
       <div className="rounded-2xl border border-[#382d20] bg-gradient-to-r from-[#14110e] via-[#1a1510] to-[#120f0c] p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-5">
-          {/* Avatar Pedestal Box (Lilac & Dark Fantasy Frame) */}
+          {/* Avatar Pedestal Box */}
           <div className="flex flex-col items-center">
             <div className="relative flex h-28 w-28 items-center justify-center rounded-2xl border-2 border-[#584568] bg-gradient-to-b from-[#2a1d38] to-[#150f1d] p-2 shadow-[0_0_20px_rgba(147,112,219,0.25)]">
               <PixelHeroSprite size={90} />
@@ -89,13 +96,21 @@ export function RewardsView() {
               <h3 className="font-display text-base font-bold text-parchment uppercase tracking-wider">
                 {profile?.username ? profile.username.toUpperCase() : 'ASHEN HERO'}
               </h3>
+              {activeBadge && (
+                <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 font-mono text-[10px] font-bold text-gold">
+                  {activeBadge}
+                </span>
+              )}
             </div>
             <p className="mt-1 text-xs text-muted max-w-md leading-relaxed">
-              Items purchased from the bazaar are instantly worn on your character sprite. Equip swords, horned helmets, buckler shields, pet companions, and armor!
+              Equip purchased swords, helmets, shields, and companion wisps to dress your character sprite. Switch themes and display prestigious badges!
             </p>
-            <div className="mt-2.5 flex items-center gap-3 font-mono text-xs text-gold">
+            <div className="mt-2.5 flex flex-wrap items-center gap-2 font-mono text-xs text-gold">
               <span className="rounded bg-gold/10 px-2 py-0.5 border border-gold/20">
-                🛡️ {equippedCount} Wearables Equipped
+                🛡️ {equippedGearCount} Gear Equipped
+              </span>
+              <span className="rounded bg-blue-500/10 px-2 py-0.5 border border-blue-500/30 text-blue-300">
+                🎨 Theme: {activeTheme.replace('theme-', '').replace('-', ' ').toUpperCase()}
               </span>
             </div>
           </div>
@@ -103,30 +118,35 @@ export function RewardsView() {
       </div>
 
       {/* Category Filter Pills */}
-      <div className="flex items-center gap-1.5 rounded-xl border border-[#2e261d] bg-[#100e0b] p-1.5 overflow-x-auto">
-        {(['all', 'weapon', 'armor', 'cloak', 'shield', 'relic'] as ShopFilter[]).map((f) => {
-          const isSelected = filter === f
+      <div className="flex items-center gap-2 rounded-xl border border-[#2e261d] bg-[#100e0b] p-1.5 overflow-x-auto">
+        {[
+          { id: 'all', label: '✨ ALL REWARDS' },
+          { id: 'gear', label: '⚔️ VIRTUAL GEAR' },
+          { id: 'theme', label: '🎨 APP THEMES' },
+          { id: 'badge', label: '🏅 PROFILE BADGES' },
+        ].map((tab) => {
+          const isSelected = filter === tab.id
           return (
             <button
-              key={f}
+              key={tab.id}
               type="button"
               onClick={() => {
                 soundFx.playClick()
-                setFilter(f)
+                setFilter(tab.id as ShopFilter)
               }}
-              className={`rounded-lg px-3.5 py-1.5 font-mono text-xs font-bold uppercase transition-all ${
+              className={`rounded-lg px-4 py-2 font-mono text-xs font-bold uppercase transition-all whitespace-nowrap ${
                 isSelected
                   ? 'border border-gold/40 bg-gold text-[#0a0908] shadow-[0_0_12px_rgba(226,179,104,0.3)]'
                   : 'text-muted hover:text-parchment hover:bg-[#181410]'
               }`}
             >
-              {f === 'all' ? '✨ ALL WEARABLES' : f}
+              {tab.label}
             </button>
           )
         })}
       </div>
 
-      {/* Shop Gear Grid */}
+      {/* Shop Items Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filteredItems.map((item) => {
           const theme = RARITY_THEMES[item.rarity] || RARITY_THEMES.common
@@ -134,21 +154,28 @@ export function RewardsView() {
           const isPurchased = item.isPurchased
           const isEquipped = item.isEquipped
 
+          const categoryBadge =
+            item.type === 'theme'
+              ? '🎨 THEME'
+              : item.type === 'badge'
+              ? '🏅 CREST'
+              : `⚔️ ${item.type.toUpperCase()}`
+
           return (
             <div
               key={item.id}
               className={`relative flex flex-col justify-between rounded-2xl border ${theme.border} ${theme.bg} p-4.5 shadow-lg transition-all hover:scale-[1.02]`}
             >
               <div>
-                {/* Rarity and Type Header */}
+                {/* Rarity and Category Tag Header */}
                 <div className="flex items-center justify-between gap-2">
                   <span
                     className={`rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider ${theme.badge}`}
                   >
                     {item.rarity}
                   </span>
-                  <span className="font-mono text-[10px] uppercase text-muted">
-                    {item.type}
+                  <span className="font-mono text-[10px] font-bold uppercase text-gold/80">
+                    {categoryBadge}
                   </span>
                 </div>
 
@@ -191,7 +218,17 @@ export function RewardsView() {
                         : 'border border-gold/40 bg-gold/15 text-gold hover:bg-gold/25'
                     }`}
                   >
-                    {isEquipped ? '✓ WEARING' : 'EQUIP'}
+                    {isEquipped
+                      ? item.type === 'theme'
+                        ? '✓ ACTIVE'
+                        : item.type === 'badge'
+                        ? '✓ WEARING'
+                        : '✓ EQUIPPED'
+                      : item.type === 'theme'
+                      ? 'APPLY'
+                      : item.type === 'badge'
+                      ? 'WEAR'
+                      : 'EQUIP'}
                   </button>
                 ) : (
                   <button

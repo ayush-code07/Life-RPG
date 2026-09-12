@@ -115,7 +115,7 @@ export const rpgApi = {
 
   updateProfile: (
     token: string,
-    body: { username?: string; coins?: number; equipped_gear?: any[] }
+    body: { username?: string; coins?: number; equipped_gear?: any[]; active_theme?: string; active_badge?: string }
   ) =>
     request<ApiEnvelope<Profile>>('/api/profile/me', token, {
       method: 'PATCH',
