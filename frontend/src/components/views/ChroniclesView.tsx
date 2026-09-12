@@ -259,27 +259,6 @@ export function ChroniclesView() {
               <SegmentedMeter label="FOCUS" icon="✨" value={15} max={40} color="gold" />
             </div>
           </div>
-
-          {/* Soul Link & Cloud Sanctum */}
-          <div className="rounded-2xl border border-[#382d20] bg-[#14110e] p-6 shadow-md space-y-3">
-            <div className="flex items-center gap-2 border-b border-[#262018] pb-3">
-              <span className="text-moss">🌱</span>
-              <h3 className="font-display text-sm font-bold tracking-wider text-parchment uppercase">
-                SOUL LINK & CLOUD SANCTUARY
-              </h3>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 text-xs font-mono">
-              <div className="rounded-lg border border-[#262018] bg-[#0d0b09] p-3">
-                <p className="text-muted">LINKED SOUL ID</p>
-                <p className="mt-1 text-parchment truncate">{user?.id ?? '008ea134-offline-hero-uuid'}</p>
-              </div>
-              <div className="rounded-lg border border-[#262018] bg-[#0d0b09] p-3">
-                <p className="text-muted">CLOUD PERSISTENCE</p>
-                <p className="mt-1 text-moss">● PostgreSQL Active (ap-northeast-1)</p>
-              </div>
-            </div>
-          </div>
         </div>
       )}
 
