@@ -51,7 +51,7 @@ export const BOSS_TIERS: BossEntity[] = [
     tier: 4,
     name: 'GILDED ARCH-DEMON BELIAL',
     title: 'Emperor of the False Sun',
-    avatar: '👑',
+    avatar: '👿',
     lore: 'The apex tyrant of the Abyss who tests the ultimate unbroken will of the Soulbearer.',
     maxHp: 2200,
     currentHp: 2200,
