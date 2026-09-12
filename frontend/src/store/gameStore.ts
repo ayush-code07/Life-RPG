@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { rpgApi } from '../lib/api'
+import { rpgApi, ApiError } from '../lib/api'
 import { applyXPGain } from '../lib/progression'
 import { soundFx } from '../lib/audio'
 import { PREVIEW_TOKEN, previewAttributes, previewProfile, previewTasks } from '../lib/previewData'
@@ -234,16 +234,18 @@ function applyCompletionToProfile(current: Profile | null, result: TaskCompletio
   }
 }
 
-const getStoredCoins = (): number => {
+const getStoredCoins = (userId?: string): number => {
   if (typeof window === 'undefined') return 25
-  const val = localStorage.getItem('ashen_coins')
+  const key = userId ? `ashen_coins_${userId}` : 'ashen_coins'
+  const val = localStorage.getItem(key)
   return val !== null ? parseInt(val, 10) : 25
 }
 
-const getStoredShopItems = (): ShopItem[] => {
+const getStoredShopItems = (userId?: string): ShopItem[] => {
   if (typeof window === 'undefined') return INITIAL_SHOP_ITEMS
   try {
-    const val = localStorage.getItem('ashen_shop_items_v3')
+    const key = userId ? `ashen_shop_items_${userId}` : 'ashen_shop_items_v3'
+    const val = localStorage.getItem(key)
     return val ? JSON.parse(val) : INITIAL_SHOP_ITEMS
   } catch {
     return INITIAL_SHOP_ITEMS
@@ -353,9 +355,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     soundFx.playPurchaseSound()
+    const userId = get().profile?.id
     if (typeof window !== 'undefined') {
-      localStorage.setItem('ashen_coins', String(newCoins))
-      localStorage.setItem('ashen_shop_items_v3', JSON.stringify(updatedShop))
+      const coinKey = userId ? `ashen_coins_${userId}` : 'ashen_coins'
+      const shopKey = userId ? `ashen_shop_items_${userId}` : 'ashen_shop_items_v3'
+      localStorage.setItem(coinKey, String(newCoins))
+      localStorage.setItem(shopKey, JSON.stringify(updatedShop))
     }
 
     // Persist to PostgreSQL database in background
@@ -392,8 +397,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       return inv
     })
 
+    const userId = get().profile?.id
     if (typeof window !== 'undefined') {
-      localStorage.setItem('ashen_shop_items_v3', JSON.stringify(updatedShop))
+      const shopKey = userId ? `ashen_shop_items_${userId}` : 'ashen_shop_items_v3'
+      localStorage.setItem(shopKey, JSON.stringify(updatedShop))
     }
 
     // Persist to PostgreSQL database in background
@@ -454,14 +461,15 @@ export const useGameStore = create<GameState>((set, get) => ({
         rpgApi.getInventory(accessToken).catch(() => [] as InventoryItem[]),
       ])
 
-      // Sync coins & shop items from database profile if available
-      let syncedCoins = get().coins
-      let syncedShop = get().shopItems
+      // Sync coins & shop items from database profile for the authenticated user
+      const userId = profile.id
+      let syncedCoins = profile.coins !== undefined && profile.coins !== null ? profile.coins : getStoredCoins(userId)
+      let syncedShop = getStoredShopItems(userId)
 
       if (profile.coins !== undefined && profile.coins !== null) {
         syncedCoins = profile.coins
         if (typeof window !== 'undefined') {
-          localStorage.setItem('ashen_coins', String(syncedCoins))
+          localStorage.setItem(`ashen_coins_${userId}`, String(syncedCoins))
         }
       }
 
@@ -471,7 +479,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           return dbItem ? { ...item, isPurchased: !!dbItem.isPurchased, isEquipped: !!dbItem.isEquipped } : item
         })
         if (typeof window !== 'undefined') {
-          localStorage.setItem('ashen_shop_items_v3', JSON.stringify(syncedShop))
+          localStorage.setItem(`ashen_shop_items_${userId}`, JSON.stringify(syncedShop))
         }
       }
 
@@ -486,6 +494,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         loading: false,
       })
     } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        void useAuthStore.getState().signOut()
+        return
+      }
       const message = error instanceof Error ? error.message : 'Failed to sync with the Life RPG API.'
       set({ error: message, loading: false })
     }
@@ -663,11 +675,15 @@ export const useGameStore = create<GameState>((set, get) => ({
       attributes: [],
       tasks: [],
       inventory: [],
+      shopItems: INITIAL_SHOP_ITEMS,
+      coins: 25,
       streakInfo: null,
+      boss: INITIAL_BOSS,
       loading: false,
       syncing: false,
       error: null,
       lastCompletion: null,
+      celebration: null,
     }),
 }))
 
