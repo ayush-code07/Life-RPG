@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Sidebar } from '../layout/Sidebar'
 import { TopHeader } from '../layout/TopHeader'
-import { AxiomBanner } from './AxiomBanner'
 import { BonfireScene } from '../character/BonfireScene'
 import { HeroStatsPanel } from '../character/HeroStatsPanel'
-import { BossRaidWidget } from './BossRaidWidget'
 import { QuestBoard } from '../quests/QuestBoard'
 import { CreateQuestModal } from '../quests/CreateQuestModal'
 import { EditQuestModal } from '../quests/EditQuestModal'
@@ -92,9 +90,6 @@ export function Dashboard() {
                 </div>
               </div>
 
-              {/* Boss Raid Widget */}
-              <BossRaidWidget />
-
               {/* Full Width Quests Section Below */}
               <div className="w-full">
                 <QuestBoard
@@ -117,9 +112,6 @@ export function Dashboard() {
           {activeTab === 'rewards' && <RewardsView />}
           {activeTab === 'armory' && <ArmoryView />}
           {activeTab === 'chronicles' && <ChroniclesView />}
-
-          {/* Ambient Axiom Inscription at bottom */}
-          <AxiomBanner />
           </div>
         </main>
       </div>
