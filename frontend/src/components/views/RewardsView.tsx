@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { soundFx } from '../../lib/audio'
 import { useGameStore } from '../../store/gameStore'
 import { PixelHeroSprite } from '../character/PixelHeroSprite'
-import type { ShopItem } from '../../types/rpg'
 
 type ShopFilter = 'all' | 'weapon' | 'armor' | 'cloak' | 'shield' | 'relic'
 

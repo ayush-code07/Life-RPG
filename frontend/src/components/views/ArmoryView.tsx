@@ -8,7 +8,7 @@ const RARITY_COLORS: Record<string, { border: string; bg: string; text: string }
 }
 
 export function ArmoryView() {
-  const { inventory, shopItems, equipItem, setActiveTab } = useGameStore()
+  const { shopItems, equipItem, setActiveTab } = useGameStore()
 
   // Combined purchased gear and inventory
   const purchasedGear = shopItems.filter((i) => i.isPurchased)

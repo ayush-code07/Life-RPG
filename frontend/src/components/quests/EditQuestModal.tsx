@@ -49,7 +49,7 @@ export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQue
     event.preventDefault()
     if (!quest || !title.trim()) return
 
-    soundFx.playEquip()
+    soundFx.playPurchaseSound()
     await onSave(quest.task_id, {
       title: title.trim(),
       description: description.trim() || undefined,

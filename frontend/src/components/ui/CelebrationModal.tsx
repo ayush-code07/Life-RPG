@@ -1,11 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { soundFx } from '../../lib/audio'
 import { useGameStore } from '../../store/gameStore'
 import { PixelHeroSprite } from '../character/PixelHeroSprite'
 
 export function CelebrationModal() {
-  const { celebration, dismissCelebration, profile } = useGameStore()
+  const { celebration, dismissCelebration } = useGameStore()
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   // Canvas confetti & gold sparkle explosion

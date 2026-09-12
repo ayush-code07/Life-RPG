@@ -10,7 +10,7 @@ const ATTRIBUTE_ICONS: Record<string, string> = {
 }
 
 export function AttributesView() {
-  const { attributes, profile } = useGameStore()
+  const { attributes } = useGameStore()
 
   const defaultAttrs = [
     { name: 'Strength', val: 18, xp: 45, max: 100, desc: 'Physical power and heavy weapon scaling' },

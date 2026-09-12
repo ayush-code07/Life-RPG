@@ -6,7 +6,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
   )
 }
 
-export function QuestBoardSkeleton() {
+export function QuestBoardSkeleton({ count = 3 }: { count?: number } = {}) {
   return (
     <div className="space-y-3 animate-pulse">
       {/* Skeleton Header */}
@@ -24,7 +24,7 @@ export function QuestBoardSkeleton() {
       </div>
 
       {/* Skeleton Quest Cards */}
-      {[1, 2, 3].map((i) => (
+      {Array.from({ length: count }, (_, i) => i).map((i) => (
         <div
           key={i}
           className="flex items-center justify-between rounded-xl border border-[#2e261d] bg-[#14110e] p-4"

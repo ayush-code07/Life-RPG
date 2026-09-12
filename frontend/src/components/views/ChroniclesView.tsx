@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { soundFx } from '../../lib/audio'
 import { useGameStore } from '../../store/gameStore'
-import { useAuthStore } from '../../store/authStore'
 import { PixelHeroSprite } from '../character/PixelHeroSprite'
 
 type SubTab = 'profile' | 'feats' | 'codex' | 'settings'
@@ -10,8 +9,7 @@ type SpritePose = 'idle' | 'attack' | 'cast' | 'cheer'
 export function ChroniclesView() {
   const [subTab, setSubTab] = useState<SubTab>('profile')
   const [spritePose, setSpritePose] = useState<SpritePose>('idle')
-  const { profile, sfxEnabled, crtEnabled, toggleSfx, toggleCrt, tasks } = useGameStore()
-  const user = useAuthStore((state) => state.user)
+  const { profile, sfxEnabled, crtEnabled, toggleSfx, toggleCrt } = useGameStore()
 
   const level = profile?.current_level ?? 12
   const currentXP = profile?.progress_xp ?? 320

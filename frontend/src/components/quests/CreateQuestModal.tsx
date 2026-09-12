@@ -39,7 +39,7 @@ export function CreateQuestModal({ isOpen, onClose, busy, onCreate }: CreateQues
     event.preventDefault()
     if (!title.trim()) return
 
-    soundFx.playEquip()
+    soundFx.playPurchaseSound()
     await onCreate({
       title: title.trim(),
       description: description.trim() || undefined,

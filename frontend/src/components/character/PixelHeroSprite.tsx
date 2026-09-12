@@ -8,6 +8,8 @@ interface PixelHeroSpriteProps {
 
 export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: PixelHeroSpriteProps) {
   const { shopItems } = useGameStore()
+  const poseClass = pose === 'attack' ? 'scale-105' : pose === 'cheer' ? 'animate-bounce' : ''
+  const restingClass = resting ? 'opacity-90 scale-95' : ''
 
   // Find equipped wearables by item ID
   const isEquipped = (id: number) => shopItems.some((i) => i.id === id && i.isEquipped)
@@ -25,7 +27,7 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
   const hasCloak = isEquipped(11)
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className={`relative inline-flex items-center justify-center ${poseClass} ${restingClass}`} style={{ width: size, height: size }}>
       {/* Ghost Wisp Companion (Floating Pet) */}
       {hasGhostWisp && (
         <div className="absolute -top-1 -right-1 z-20 animate-bounce pointer-events-none">
