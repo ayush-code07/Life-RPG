@@ -3,6 +3,7 @@ import { rpgApi } from '../lib/api'
 import { applyXPGain } from '../lib/progression'
 import { soundFx } from '../lib/audio'
 import { PREVIEW_TOKEN, previewAttributes, previewProfile, previewTasks } from '../lib/previewData'
+import { useAuthStore } from './authStore'
 import type {
   ActiveTab,
   InventoryItem,
@@ -332,6 +333,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       localStorage.setItem('ashen_shop_items_v3', JSON.stringify(updatedShop))
     }
 
+    // Persist to PostgreSQL database in background
+    const token = useAuthStore.getState().accessToken
+    if (token && token !== PREVIEW_TOKEN) {
+      rpgApi.updateProfile(token, { coins: newCoins, equipped_gear: updatedShop }).catch(() => {})
+    }
+
     set({
       coins: newCoins,
       shopItems: updatedShop,
@@ -359,6 +366,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (typeof window !== 'undefined') {
       localStorage.setItem('ashen_shop_items_v3', JSON.stringify(updatedShop))
     }
+
+    // Persist to PostgreSQL database in background
+    const token = useAuthStore.getState().accessToken
+    if (token && token !== PREVIEW_TOKEN) {
+      rpgApi.updateProfile(token, { equipped_gear: updatedShop }).catch(() => {})
+    }
+
     set({ shopItems: updatedShop, inventory: updatedInv })
   },
 
@@ -410,8 +424,32 @@ export const useGameStore = create<GameState>((set, get) => ({
         rpgApi.getStreak(accessToken).catch(() => null),
         rpgApi.getInventory(accessToken).catch(() => [] as InventoryItem[]),
       ])
+
+      // Sync coins & shop items from database profile if available
+      let syncedCoins = get().coins
+      let syncedShop = get().shopItems
+
+      if (profile.coins !== undefined && profile.coins !== null) {
+        syncedCoins = profile.coins
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('ashen_coins', String(syncedCoins))
+        }
+      }
+
+      if (profile.equipped_gear && Array.isArray(profile.equipped_gear) && profile.equipped_gear.length > 0) {
+        syncedShop = INITIAL_SHOP_ITEMS.map((item) => {
+          const dbItem = profile.equipped_gear?.find((i: any) => i.id === item.id)
+          return dbItem ? { ...item, isPurchased: !!dbItem.isPurchased, isEquipped: !!dbItem.isEquipped } : item
+        })
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('ashen_shop_items_v3', JSON.stringify(syncedShop))
+        }
+      }
+
       set({
         profile,
+        coins: syncedCoins,
+        shopItems: syncedShop,
         tasks: tasks.map(parseTaskTags),
         attributes,
         streakInfo,
@@ -509,6 +547,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (levelsGained > 0) {
         setTimeout(() => soundFx.playLevelUp(), 400)
       }
+
+      // Persist coins to PostgreSQL database in background
+      rpgApi.updateProfile(accessToken, { coins: updatedCoins }).catch(() => {})
 
       set({
         coins: updatedCoins,

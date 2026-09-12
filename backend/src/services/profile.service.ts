@@ -8,8 +8,16 @@ export class ProfileService {
    * Retrieves profile by user UUID, computing dynamic level progression metrics
    */
   static async getProfileById(userId: string): Promise<any> {
+    // Ensure table has coins and equipped_gear columns
+    try {
+      await query(`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS coins INTEGER NOT NULL DEFAULT 25;`);
+      await query(`ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS equipped_gear JSONB NOT NULL DEFAULT '[]'::jsonb;`);
+    } catch {
+      // Ignore if columns or permissions already set
+    }
+
     const { rows } = await query(
-      `SELECT id, username, current_level, total_xp, current_streak, longest_streak, 
+      `SELECT id, username, current_level, total_xp, coins, equipped_gear, current_streak, longest_streak, 
               last_activity_date, created_at
        FROM public.profiles
        WHERE id = $1`,
@@ -26,6 +34,8 @@ export class ProfileService {
 
     return {
       ...profile,
+      coins: profile.coins ?? 25,
+      equipped_gear: profile.equipped_gear ?? [],
       progress_xp: Number(profile.total_xp) - currentThreshold,
       xp_needed_for_next: nextThreshold - currentThreshold,
       next_level_threshold: nextThreshold,
@@ -33,11 +43,11 @@ export class ProfileService {
   }
 
   /**
-   * Updates profile fields like username
+   * Updates profile fields like username, coins, or equipped_gear
    */
   static async updateProfile(
     userId: string,
-    updates: { username?: string }
+    updates: { username?: string; coins?: number; equipped_gear?: any[] }
   ): Promise<Profile> {
     const fields: string[] = [];
     const values: any[] = [];
@@ -46,6 +56,16 @@ export class ProfileService {
     if (updates.username !== undefined) {
       fields.push(`username = $${idx++}`);
       values.push(updates.username.trim());
+    }
+
+    if (updates.coins !== undefined) {
+      fields.push(`coins = $${idx++}`);
+      values.push(updates.coins);
+    }
+
+    if (updates.equipped_gear !== undefined) {
+      fields.push(`equipped_gear = $${idx++}`);
+      values.push(JSON.stringify(updates.equipped_gear));
     }
 
     if (fields.length === 0) {
@@ -58,7 +78,7 @@ export class ProfileService {
       `UPDATE public.profiles
        SET ${fields.join(', ')}
        WHERE id = $${idx}
-       RETURNING id, username, current_level, total_xp, current_streak, longest_streak, last_activity_date, created_at`,
+       RETURNING id, username, current_level, total_xp, coins, equipped_gear, current_streak, longest_streak, last_activity_date, created_at`,
       values
     );
 

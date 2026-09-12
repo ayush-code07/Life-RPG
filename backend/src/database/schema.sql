@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     username            VARCHAR(50) UNIQUE NOT NULL,
     current_level       INTEGER NOT NULL DEFAULT 1,
     total_xp            BIGINT  NOT NULL DEFAULT 0,     -- lifetime cumulative XP
+    coins               INTEGER NOT NULL DEFAULT 25,    -- currency for bazaar rewards
+    equipped_gear       JSONB   NOT NULL DEFAULT '[]'::jsonb, -- persistent equipped items
     current_streak      INTEGER NOT NULL DEFAULT 0,
     longest_streak      INTEGER NOT NULL DEFAULT 0,
     last_activity_date  DATE,                           -- UTC date of last completion

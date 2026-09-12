@@ -20,6 +20,8 @@ export interface Profile {
   username: string
   current_level: number
   total_xp: number
+  coins?: number
+  equipped_gear?: any[]
   current_streak: number
   longest_streak: number
   last_activity_date: string | null

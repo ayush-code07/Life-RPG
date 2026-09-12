@@ -91,5 +91,14 @@ export const rpgApi = {
 
   getCatalog: (token: string) =>
     request<ApiEnvelope<any[]>>('/api/items', token).then((r) => r.data ?? []),
+
+  updateProfile: (
+    token: string,
+    body: { username?: string; coins?: number; equipped_gear?: any[] }
+  ) =>
+    request<ApiEnvelope<Profile>>('/api/profile/me', token, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }).then((r) => r.data!),
 }
 

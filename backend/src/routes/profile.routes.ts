@@ -14,6 +14,8 @@ const updateProfileSchema = z.object({
       .max(50, 'Username cannot exceed 50 characters')
       .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and dashes')
       .optional(),
+    coins: z.number().int().min(0).optional(),
+    equipped_gear: z.array(z.any()).optional(),
   }),
 });
 
