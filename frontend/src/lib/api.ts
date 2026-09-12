@@ -83,4 +83,13 @@ export const rpgApi = {
       token,
       { method: 'POST' }
     ),
+
+  getInventory: (token: string) =>
+    request<ApiEnvelope<any[]>>('/api/profile/me/inventory', token).then(
+      (r) => r.data ?? []
+    ),
+
+  getCatalog: (token: string) =>
+    request<ApiEnvelope<any[]>>('/api/items', token).then((r) => r.data ?? []),
 }
+

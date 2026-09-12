@@ -1,91 +1,101 @@
 import { useEffect } from 'react'
-import { CharacterProfile } from '../character/CharacterProfile'
+import { Sidebar } from '../layout/Sidebar'
+import { TopHeader } from '../layout/TopHeader'
+import { AxiomBanner } from './AxiomBanner'
+import { BonfireScene } from '../character/BonfireScene'
+import { BossRaidWidget } from './BossRaidWidget'
 import { QuestBoard } from '../quests/QuestBoard'
+import { AttributesView } from '../views/AttributesView'
+import { ArmoryView } from '../views/ArmoryView'
+import { ChroniclesView } from '../views/ChroniclesView'
 import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 
 export function Dashboard() {
-  const user = useAuthStore((state) => state.user)
   const accessToken = useAuthStore((state) => state.accessToken)
   const preview = useAuthStore((state) => state.preview)
-  const signOut = useAuthStore((state) => state.signOut)
-  const { profile, attributes, tasks, loading, syncing, error, hydrate, completeQuest, addQuest } =
-    useGameStore()
+  const {
+    tasks,
+    activeTab,
+    crtEnabled,
+    loading,
+    syncing,
+    error,
+    hydrate,
+    completeQuest,
+    addQuest,
+    clearError,
+  } = useGameStore()
 
   useEffect(() => {
     if (accessToken) void hydrate(accessToken)
   }, [accessToken, hydrate])
 
-  const displayName =
-    profile?.username ??
-    (user?.user_metadata?.username as string | undefined) ??
-    user?.email ??
-    'Adventurer'
-
   return (
-    <div className="mx-auto min-h-screen max-w-6xl px-4 py-8">
-      <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold">Life RPG</p>
-          <h1 className="font-display text-3xl sm:text-4xl">Command deck</h1>
+    <div className={`min-h-screen bg-[#0a0908] text-parchment ${crtEnabled ? 'crt-overlay' : ''}`}>
+      <div className="flex flex-col lg:flex-row min-h-screen">
+        {/* Left Sidebar */}
+        <Sidebar />
+
+        {/* Main Content Area */}
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+          {/* Top Header */}
+          <TopHeader />
+
+          {/* Offline / Preview status notice */}
+          {preview && (
+            <div className="flex items-center justify-between rounded-xl border border-gold/30 bg-gold/10 px-4 py-2.5 text-xs text-gold">
+              <span>⚔️ Offline Preview mode active. Changes will save in local trial state.</span>
+            </div>
+          )}
+
+          {/* Dismissible Error Banner */}
+          {error && (
+            <div className="flex items-center justify-between rounded-xl border border-ember/40 bg-ember/10 px-4 py-3 text-xs text-ember">
+              <span>{error}</span>
+              <button
+                type="button"
+                onClick={clearError}
+                className="font-mono text-xs font-bold text-parchment hover:text-gold"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* Axiom Codex Banner */}
+          <AxiomBanner />
+
+          {/* Tab Views */}
+          {activeTab === 'sanctuary' && (
+            <div className="grid gap-6 lg:grid-cols-[minmax(320px,440px)_1fr]">
+              {/* Left Column: Bonfire & Level Bar */}
+              <div>
+                <BonfireScene />
+              </div>
+
+              {/* Right Column: World Boss & Quest Board */}
+              <div className="space-y-6">
+                <BossRaidWidget />
+                <QuestBoard
+                  quests={tasks}
+                  busy={loading || syncing}
+                  onComplete={async (taskId) => {
+                    if (accessToken) await completeQuest(accessToken, taskId)
+                  }}
+                  onCreate={async (input) => {
+                    if (accessToken) await addQuest(accessToken, input)
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'attributes' && <AttributesView />}
+          {activeTab === 'armory' && <ArmoryView />}
+          {activeTab === 'chronicles' && <ChroniclesView />}
         </div>
-        <div className="flex items-center gap-3">
-          <p className="text-sm text-muted">Signed in as {displayName}</p>
-          <button
-            type="button"
-            onClick={() => void signOut()}
-            aria-label="Sign out of Life RPG"
-            className="rounded-lg border border-gold/30 px-3 py-2 text-sm font-semibold text-gold hover:bg-gold/10"
-          >
-            Sign out
-          </button>
-        </div>
-      </header>
-
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="grid gap-6 lg:grid-cols-[minmax(280px,380px)_1fr]"
-        aria-busy={loading || syncing}
-      >
-        {preview && (
-          <p className="rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm lg:col-span-2" role="status">
-            Offline preview. Connect Supabase and the API on port 5000 to sync a live character.
-          </p>
-        )}
-
-        {error && (
-          <p className="rounded-xl border border-ember/40 bg-ember/10 px-4 py-3 text-sm lg:col-span-2" role="alert">
-            {error}
-          </p>
-        )}
-
-        {loading && !profile ? (
-          <p className="lg:col-span-2 text-muted" role="status">
-            Syncing your character from the backend…
-          </p>
-        ) : profile ? (
-          <>
-            <CharacterProfile profile={profile} attributes={attributes} />
-            <QuestBoard
-              quests={tasks}
-              busy={syncing}
-              onComplete={async (taskId) => {
-                if (!accessToken) return
-                await completeQuest(accessToken, taskId)
-              }}
-              onCreate={async (input) => {
-                if (!accessToken) return
-                await addQuest(accessToken, input)
-              }}
-            />
-          </>
-        ) : (
-          <p className="lg:col-span-2 text-muted" role="status">
-            No character data yet. Complete sign-in and keep the API server running on port 5000.
-          </p>
-        )}
-      </main>
+      </div>
     </div>
   )
 }

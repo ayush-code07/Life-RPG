@@ -1,3 +1,4 @@
+import { PoolClient } from 'pg';
 import { query, withTransaction } from '../config/database';
 import {
   Task,
@@ -51,26 +52,28 @@ export class TaskService {
   /**
    * Retrieves a single task with its attribute rewards
    */
-  static async getTaskById(taskId: number): Promise<Task> {
-    const { rows } = await query(
-      `SELECT t.task_id, t.profile_id, t.title, t.description, t.difficulty, 
-              t.xp_reward, t.status, t.due_date, t.created_at,
-              COALESCE(
-                JSON_AGG(
-                  JSON_BUILD_OBJECT(
-                    'attribute_id', tar.attribute_id,
-                    'attribute_name', a.attribute_name,
-                    'attribute_xp_value', tar.attribute_xp_value
-                  )
-                ) FILTER (WHERE tar.attribute_id IS NOT NULL), '[]'
-              ) as attribute_rewards
-       FROM public.tasks t
-       LEFT JOIN public.task_attribute_rewards tar ON t.task_id = tar.task_id
-       LEFT JOIN public.attributes a ON tar.attribute_id = a.attribute_id
-       WHERE t.task_id = $1
-       GROUP BY t.task_id`,
-      [taskId]
-    );
+  static async getTaskById(taskId: number, client?: PoolClient): Promise<Task> {
+    const sql = `
+      SELECT t.task_id, t.profile_id, t.title, t.description, t.difficulty, 
+             t.xp_reward, t.status, t.due_date, t.created_at,
+             COALESCE(
+               JSON_AGG(
+                 JSON_BUILD_OBJECT(
+                   'attribute_id', tar.attribute_id,
+                   'attribute_name', a.attribute_name,
+                   'attribute_xp_value', tar.attribute_xp_value
+                 )
+               ) FILTER (WHERE tar.attribute_id IS NOT NULL), '[]'
+             ) as attribute_rewards
+      FROM public.tasks t
+      LEFT JOIN public.task_attribute_rewards tar ON t.task_id = tar.task_id
+      LEFT JOIN public.attributes a ON tar.attribute_id = a.attribute_id
+      WHERE t.task_id = $1
+      GROUP BY t.task_id
+    `;
+    const { rows } = client
+      ? await client.query(sql, [taskId])
+      : await query(sql, [taskId]);
 
     if (!rows.length) {
       throw new NotFoundError('Task', taskId);
@@ -130,7 +133,7 @@ export class TaskService {
         }
       }
 
-      return await this.getTaskById(createdTask.task_id);
+      return await this.getTaskById(createdTask.task_id, client);
     });
   }
 
@@ -203,7 +206,7 @@ export class TaskService {
         }
       }
 
-      return await this.getTaskById(taskId);
+      return await this.getTaskById(taskId, client);
     });
   }
 

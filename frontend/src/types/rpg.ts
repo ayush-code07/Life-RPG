@@ -1,5 +1,7 @@
 export type TaskDifficulty = 1 | 2 | 3 | 4 | 5
 export type TaskStatus = 'pending' | 'active' | 'completed' | 'archived'
+export type ActiveTab = 'sanctuary' | 'attributes' | 'armory' | 'chronicles'
+export type ChampionClass = 'SORC' | 'KNIGHT' | 'RONIN' | 'ROGUE'
 
 export interface Profile {
   id: string
@@ -44,6 +46,27 @@ export interface Task {
   attribute_rewards?: TaskAttributeReward[]
 }
 
+export interface Item {
+  item_id: number
+  item_name: string
+  item_type: string
+  description: string
+  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+}
+
+export interface InventoryItem {
+  inventory_id: number
+  profile_id: string
+  item_id: number
+  quantity: number
+  acquired_at: string
+  item_name: string
+  item_type: string
+  description: string
+  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+  equipped?: boolean
+}
+
 export interface TaskCompletionResponse {
   message: string
   task: {
@@ -83,3 +106,4 @@ export interface StreakInfo {
   last_activity_date: string | null
   recent_activity?: Array<{ activity_date: string; completions_count: number }>
 }
+

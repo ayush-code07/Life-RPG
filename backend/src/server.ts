@@ -23,6 +23,7 @@ async function startServer() {
       logger.info(`⚔️ Life RPG Backend Engine listening on http://localhost:${env.PORT}`);
       logger.info(`⚡ Environment: ${env.NODE_ENV}`);
       logger.info(`🛡️ Zero-Crash Error Handling Layer Active`);
+      logger.info(`📦 Database: Connected via Supabase Pooler`);
     });
   } catch (error: any) {
     logger.error('❌ Failed to start server:', error.message);

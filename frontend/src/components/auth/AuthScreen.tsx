@@ -54,12 +54,17 @@ export function AuthScreen() {
         className="rounded-2xl border border-gold/25 bg-panel/90 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]"
         aria-labelledby="auth-heading"
       >
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.28em] text-gold">Life RPG</p>
-        <h1 id="auth-heading" className="font-display text-3xl text-parchment">
+        <div className="flex items-center gap-2.5 mb-3">
+          <span className="text-xl">🔥</span>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold-gradient">
+            ASHEN PATH • CHRONICLES OF ASH
+          </p>
+        </div>
+        <h1 id="auth-heading" className="font-display text-3xl font-bold text-parchment">
           {heading}
         </h1>
-        <p className="mt-2 text-sm text-muted">
-          Sign in with Supabase Auth. Your session token syncs with the Life RPG backend automatically.
+        <p className="mt-2 text-xs text-muted">
+          Inscribe your soul with Supabase Auth to begin your journey through the Ashen Wastes.
         </p>
 
         {!isSupabaseConfigured && (

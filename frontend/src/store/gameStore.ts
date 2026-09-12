@@ -1,23 +1,57 @@
 import { create } from 'zustand'
 import { rpgApi } from '../lib/api'
 import { applyXPGain } from '../lib/progression'
+import { soundFx } from '../lib/audio'
 import { PREVIEW_TOKEN, previewAttributes, previewProfile, previewTasks } from '../lib/previewData'
-import type { Profile, ProfileAttribute, Task, TaskCompletionResponse } from '../types/rpg'
+import type {
+  ActiveTab,
+  ChampionClass,
+  InventoryItem,
+  Profile,
+  ProfileAttribute,
+  StreakInfo,
+  Task,
+  TaskCompletionResponse,
+} from '../types/rpg'
+
+export interface BossState {
+  name: string
+  title: string
+  maxHp: number
+  currentHp: number
+  isDefeated: boolean
+}
 
 interface GameState {
   profile: Profile | null
   attributes: ProfileAttribute[]
   tasks: Task[]
+  inventory: InventoryItem[]
+  streakInfo: StreakInfo | null
+  activeTab: ActiveTab
+  championClass: ChampionClass
+  sfxEnabled: boolean
+  crtEnabled: boolean
+  resting: boolean
+  boss: BossState
   loading: boolean
   syncing: boolean
   error: string | null
   lastCompletion: TaskCompletionResponse | null
+
+  // Actions
   hydrate: (accessToken: string) => Promise<void>
   completeQuest: (accessToken: string, taskId: number) => Promise<TaskCompletionResponse>
   addQuest: (
     accessToken: string,
     input: { title: string; description?: string; difficulty: 1 | 2 | 3 | 4 | 5 }
   ) => Promise<void>
+  setActiveTab: (tab: ActiveTab) => void
+  setChampionClass: (cls: ChampionClass) => void
+  toggleSfx: () => void
+  toggleCrt: () => void
+  restAtBonfire: () => void
+  clearError: () => void
   reset: () => void
 }
 
@@ -27,6 +61,14 @@ const XP_BY_DIFFICULTY: Record<1 | 2 | 3 | 4 | 5, number> = {
   3: 90,
   4: 150,
   5: 250,
+}
+
+const INITIAL_BOSS: BossState = {
+  name: 'CORRUPTED BEHEMOTH',
+  title: 'Scourge of the Ashen Waste',
+  maxHp: 400,
+  currentHp: 220,
+  isDefeated: false,
 }
 
 function applyCompletionToProfile(current: Profile | null, result: TaskCompletionResponse): Profile | null {
@@ -47,10 +89,50 @@ export const useGameStore = create<GameState>((set, get) => ({
   profile: null,
   attributes: [],
   tasks: [],
+  inventory: [],
+  streakInfo: null,
+  activeTab: 'sanctuary',
+  championClass: 'KNIGHT',
+  sfxEnabled: true,
+  crtEnabled: false,
+  resting: false,
+  boss: INITIAL_BOSS,
   loading: false,
   syncing: false,
   error: null,
   lastCompletion: null,
+
+  setActiveTab: (tab) => {
+    soundFx.playClick()
+    set({ activeTab: tab })
+  },
+
+  setChampionClass: (cls) => {
+    soundFx.playClick()
+    set({ championClass: cls })
+  },
+
+  toggleSfx: () => {
+    const next = !get().sfxEnabled
+    soundFx.enabled = next
+    if (next) soundFx.playClick()
+    set({ sfxEnabled: next })
+  },
+
+  toggleCrt: () => {
+    soundFx.playClick()
+    set((s) => ({ crtEnabled: !s.crtEnabled }))
+  },
+
+  restAtBonfire: () => {
+    soundFx.playBonfireRest()
+    set({ resting: true })
+    setTimeout(() => {
+      set({ resting: false })
+    }, 1500)
+  },
+
+  clearError: () => set({ error: null }),
 
   hydrate: async (accessToken) => {
     if (accessToken === PREVIEW_TOKEN) {
@@ -58,6 +140,31 @@ export const useGameStore = create<GameState>((set, get) => ({
         profile: previewProfile,
         tasks: previewTasks,
         attributes: previewAttributes,
+        inventory: [
+          {
+            inventory_id: 1,
+            profile_id: 'preview',
+            item_id: 1,
+            item_name: 'Ashen Greatsword',
+            item_type: 'weapon',
+            description: 'Forged in the embers of the First Kiln.',
+            rarity: 'epic',
+            quantity: 1,
+            acquired_at: new Date().toISOString(),
+            equipped: true,
+          },
+          {
+            inventory_id: 2,
+            profile_id: 'preview',
+            item_id: 2,
+            item_name: 'Flask of Crimson Embers',
+            item_type: 'consumable',
+            description: 'Restores stamina and clears cognitive fatigue.',
+            rarity: 'rare',
+            quantity: 3,
+            acquired_at: new Date().toISOString(),
+          },
+        ],
         loading: false,
         error: null,
       })
@@ -66,12 +173,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     set({ loading: true, error: null })
     try {
-      const [profile, tasks, attributes] = await Promise.all([
+      const [profile, tasks, attributes, streakInfo, inventory] = await Promise.all([
         rpgApi.getProfile(accessToken),
         rpgApi.getTasks(accessToken),
         rpgApi.getAttributes(accessToken).catch(() => [] as ProfileAttribute[]),
+        rpgApi.getStreak(accessToken).catch(() => null),
+        rpgApi.getInventory(accessToken).catch(() => [] as InventoryItem[]),
       ])
-      set({ profile, tasks, attributes, loading: false })
+      set({ profile, tasks, attributes, streakInfo, inventory, loading: false })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to sync with the Life RPG API.'
       set({ error: message, loading: false })
@@ -82,6 +191,21 @@ export const useGameStore = create<GameState>((set, get) => ({
     const snapshot = get().tasks
     const target = snapshot.find((task) => task.task_id === taskId)
     if (!target) throw new Error('Quest not found.')
+
+    // Optimistic strike
+    soundFx.playSwordSlash()
+    soundFx.playBossHit()
+
+    // Boss damage calculation
+    const damage = Math.max(20, target.xp_reward)
+    const newBossHp = Math.max(0, get().boss.currentHp - damage)
+    set((s) => ({
+      boss: {
+        ...s.boss,
+        currentHp: newBossHp,
+        isDefeated: newBossHp === 0,
+      },
+    }))
 
     set({
       syncing: true,
@@ -95,6 +219,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (accessToken === PREVIEW_TOKEN) {
         const current = get().profile ?? previewProfile
         const gained = applyXPGain(current.current_level, current.total_xp, target.xp_reward)
+        if (gained.levelsGained > 0) {
+          setTimeout(() => soundFx.playLevelUp(), 400)
+        }
         const result: TaskCompletionResponse = {
           message: 'Quest complete.',
           task: { task_id: target.task_id, title: target.title, xp_awarded: target.xp_reward },
@@ -119,6 +246,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
 
       const result = await rpgApi.completeTask(accessToken, taskId)
+      if (result.profile.levels_gained > 0) {
+        setTimeout(() => soundFx.playLevelUp(), 400)
+      }
       set({
         lastCompletion: result,
         syncing: false,
@@ -133,6 +263,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   addQuest: async (accessToken, input) => {
+    soundFx.playClick()
     set({ syncing: true, error: null })
     try {
       if (accessToken === PREVIEW_TOKEN) {
@@ -169,9 +300,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       profile: null,
       attributes: [],
       tasks: [],
+      inventory: [],
+      streakInfo: null,
       loading: false,
       syncing: false,
       error: null,
       lastCompletion: null,
     }),
 }))
+
