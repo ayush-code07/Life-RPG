@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { useGameStore } from '../../store/gameStore'
+import { PixelHeroSprite } from './PixelHeroSprite'
 
 export function BonfireScene() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const { profile, championClass, resting, restAtBonfire } = useGameStore()
+  const { profile, resting, restAtBonfire } = useGameStore()
 
   const level = profile?.current_level ?? 12
   const currentXP = profile?.progress_xp ?? 320
@@ -125,13 +126,13 @@ export function BonfireScene() {
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0e0b08] to-transparent border-b border-[#2e261d]" />
         <div className="absolute bottom-3 left-6 right-6 h-1 bg-[#1c1612] rounded-full opacity-60" />
 
-        {/* Pixel Art Knight Character */}
+        {/* Pixel Art Character Wearing Equipped Gear */}
         <div className="absolute bottom-6 left-12 sm:left-16 flex flex-col items-center z-20">
           <div className={`transition-transform duration-300 ${resting ? 'scale-95' : 'animate-knight-idle'}`}>
-            <PixelKnight archetype={championClass} resting={resting} />
+            <PixelHeroSprite resting={resting} size={64} />
           </div>
           <div className="mt-2 rounded border border-[#2e261d] bg-[#100e0b] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-gold">
-            {championClass}
+            {profile?.username ?? 'HERO'}
           </div>
         </div>
 
@@ -215,52 +216,5 @@ export function BonfireScene() {
         </div>
       </div>
     </div>
-  )
-}
-
-// Crisp Pixel Art Knight Sprite Generator
-function PixelKnight({ archetype, resting }: { archetype: string; resting: boolean }) {
-  // Knight Pixel Matrix (16x16 grid visual)
-  return (
-    <svg
-      width="64"
-      height="64"
-      viewBox="0 0 16 16"
-      className="pixelated"
-      style={{ imageRendering: 'pixelated' }}
-    >
-      {/* Helmet & Plume */}
-      <rect x="7" y="1" width="2" height="2" fill="#e65c24" />
-      <rect x="6" y="3" width="4" height="4" fill="#9ca3af" />
-      <rect x="7" y="4" width="2" height="1" fill="#1f2937" />
-      <rect x="7" y="5" width="2" height="2" fill="#d1d5db" />
-
-      {/* Shoulder Cape / Mantle */}
-      <rect x="5" y="6" width="6" height="2" fill="#c83232" />
-      <rect x="4" y="7" width="2" height="4" fill="#991b1b" />
-
-      {/* Armor Torso */}
-      <rect x="6" y="7" width="4" height="4" fill="#4b5563" />
-      <rect x="7" y="8" width="2" height="2" fill="#9ca3af" />
-
-      {/* Belt */}
-      <rect x="6" y="11" width="4" height="1" fill="#78350f" />
-      <rect x="7" y="11" width="2" height="1" fill="#e2b368" />
-
-      {/* Legs / Greaves */}
-      <rect x="6" y="12" width="1.5" height="3" fill="#374151" />
-      <rect x="8.5" y="12" width="1.5" height="3" fill="#374151" />
-      <rect x="5.5" y="14" width="2" height="2" fill="#1f2937" />
-      <rect x="8.5" y="14" width="2" height="2" fill="#1f2937" />
-
-      {/* Shield (Left Hand) */}
-      <rect x="2" y="6" width="3" height="6" fill="#e5e7eb" />
-      <rect x="3" y="7" width="1" height="4" fill="#3b82f6" />
-      <rect x="2" y="11" width="3" height="1" fill="#9ca3af" />
-
-      {/* Weapon (Right Hand) */}
-      <rect x="11" y="5" width="1" height="8" fill="#d1d5db" />
-      <rect x="10" y="8" width="3" height="1" fill="#e2b368" />
-    </svg>
   )
 }

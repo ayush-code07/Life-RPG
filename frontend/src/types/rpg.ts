@@ -1,7 +1,6 @@
 export type TaskDifficulty = 1 | 2 | 3 | 4 | 5
 export type TaskStatus = 'pending' | 'active' | 'completed' | 'archived'
 export type ActiveTab = 'sanctuary' | 'attributes' | 'rewards' | 'armory' | 'chronicles'
-export type ChampionClass = 'SORC' | 'KNIGHT' | 'RONIN' | 'ROGUE'
 
 export interface ShopItem {
   id: number

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { soundFx } from '../../lib/audio'
 import { useGameStore } from '../../store/gameStore'
 import { useAuthStore } from '../../store/authStore'
-import type { ChampionClass } from '../../types/rpg'
+import { PixelHeroSprite } from '../character/PixelHeroSprite'
 
 type SubTab = 'profile' | 'feats' | 'codex' | 'settings'
 type SpritePose = 'idle' | 'attack' | 'cast' | 'cheer'
@@ -10,7 +10,7 @@ type SpritePose = 'idle' | 'attack' | 'cast' | 'cheer'
 export function ChroniclesView() {
   const [subTab, setSubTab] = useState<SubTab>('profile')
   const [spritePose, setSpritePose] = useState<SpritePose>('idle')
-  const { profile, championClass, setChampionClass, sfxEnabled, crtEnabled, toggleSfx, toggleCrt, tasks } = useGameStore()
+  const { profile, sfxEnabled, crtEnabled, toggleSfx, toggleCrt, tasks } = useGameStore()
   const user = useAuthStore((state) => state.user)
 
   const level = profile?.current_level ?? 12
@@ -19,14 +19,6 @@ export function ChroniclesView() {
   const progressPercent = Math.min(100, Math.max(0, Math.round((currentXP / neededXP) * 100)))
   const streak = profile?.current_streak ?? 7
   const gold = Math.max(120, (profile?.total_xp ?? 0) + 240)
-
-  const classes: ChampionClass[] = ['KNIGHT', 'SORC', 'RONIN', 'ROGUE']
-
-  const handleVocationCycle = () => {
-    soundFx.playClick()
-    const nextIdx = (classes.indexOf(championClass) + 1) % classes.length
-    setChampionClass(classes[nextIdx])
-  }
 
   const handlePoseChange = (pose: SpritePose) => {
     setSpritePose(pose)
@@ -141,7 +133,7 @@ export function ChroniclesView() {
               <div className="flex flex-col items-center gap-2">
                 <div className="relative flex h-36 w-36 items-center justify-center rounded-xl border-2 border-gold/40 bg-[#0d0b08] p-2 shadow-[0_0_20px_rgba(226,179,104,0.15)]">
                   <div className={`transition-transform duration-300 ${spritePose === 'idle' ? 'animate-knight-idle' : spritePose === 'attack' ? 'translate-x-2' : spritePose === 'cheer' ? '-translate-y-2' : 'scale-105'}`}>
-                    <PixelSprite pose={spritePose} archetype={championClass} />
+                    <PixelHeroSprite pose={spritePose} size={84} />
                   </div>
                   <span className="absolute bottom-1 right-1.5 rounded bg-[#100d0a] px-1 font-mono text-[9px] font-bold text-muted border border-[#2e261d]">
                     16-BIT
@@ -173,25 +165,16 @@ export function ChroniclesView() {
                   <div>
                     <div className="flex items-center gap-3">
                       <h3 className="font-display text-2xl font-bold tracking-wider text-parchment">
-                        {profile?.username ? profile.username.toUpperCase() : `ASHEN ${championClass}`}
+                        {profile?.username ? profile.username.toUpperCase() : 'ASHEN HERO'}
                       </h3>
                       <span className="rounded border border-gold/40 bg-gold/10 px-2 py-0.5 font-mono text-xs font-bold text-gold">
                         Lv. {level}
                       </span>
                     </div>
                     <p className="font-display text-xs tracking-widest text-muted uppercase mt-0.5">
-                      KEEPER OF THE KILN
+                      KEEPER OF THE SACRED KILN
                     </p>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={handleVocationCycle}
-                    className="flex items-center gap-2 rounded-xl border border-gold/30 bg-[#120e0b] px-3.5 py-1.5 font-mono text-xs font-bold text-gold hover:border-gold hover:bg-gold/10 transition-all active:scale-95"
-                  >
-                    <span>🔄</span>
-                    <span>CHANGE VOCATION</span>
-                  </button>
                 </div>
 
                 {/* Level Progress */}
@@ -394,60 +377,3 @@ function SegmentedMeter({
   )
 }
 
-// 16-Bit Pixel Sprite with Poses
-function PixelSprite({ pose, archetype }: { pose: SpritePose; archetype: string }) {
-  return (
-    <svg
-      width="80"
-      height="80"
-      viewBox="0 0 16 16"
-      style={{ imageRendering: 'pixelated' }}
-    >
-      {/* Helmet / Plume */}
-      <rect x="7" y="1" width="2" height="2" fill={pose === 'cast' ? '#60a5fa' : '#e65c24'} />
-      <rect x="6" y="3" width="4" height="4" fill="#9ca3af" />
-      <rect x="7" y="4" width="2" height="1" fill="#1f2937" />
-      <rect x="7" y="5" width="2" height="2" fill="#d1d5db" />
-
-      {/* Cape */}
-      <rect x="5" y="6" width="6" height="2" fill="#c83232" />
-      <rect x="4" y="7" width="2" height="4" fill="#991b1b" />
-
-      {/* Armor Body */}
-      <rect x="6" y="7" width="4" height="4" fill="#4b5563" />
-      <rect x="7" y="8" width="2" height="2" fill="#9ca3af" />
-
-      {/* Belt */}
-      <rect x="6" y="11" width="4" height="1" fill="#78350f" />
-      <rect x="7" y="11" width="2" height="1" fill="#e2b368" />
-
-      {/* Legs */}
-      <rect x="6" y="12" width="1.5" height="3" fill="#374151" />
-      <rect x="8.5" y="12" width="1.5" height="3" fill="#374151" />
-      <rect x="5.5" y="14" width="2" height="2" fill="#1f2937" />
-      <rect x="8.5" y="14" width="2" height="2" fill="#1f2937" />
-
-      {/* Shield */}
-      <rect x="2" y={pose === 'cheer' ? 3 : 6} width="3" height="6" fill="#e5e7eb" />
-      <rect x="3" y={pose === 'cheer' ? 4 : 7} width="1" height="4" fill="#3b82f6" />
-
-      {/* Weapon / Attack Thrust / Cast */}
-      {pose === 'attack' ? (
-        <>
-          <rect x="10" y="7" width="6" height="2" fill="#e5e7eb" />
-          <rect x="9" y="6" width="1" height="4" fill="#e2b368" />
-        </>
-      ) : pose === 'cast' ? (
-        <>
-          <rect x="11" y="2" width="1" height="10" fill="#93c5fd" />
-          <circle cx="11.5" cy="2.5" r="2" fill="#38bdf8" />
-        </>
-      ) : (
-        <>
-          <rect x="11" y="5" width="1" height="8" fill="#d1d5db" />
-          <rect x="10" y="8" width="3" height="1" fill="#e2b368" />
-        </>
-      )}
-    </svg>
-  )
-}

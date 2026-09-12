@@ -9,7 +9,6 @@ export function Sidebar() {
   const {
     profile,
     activeTab,
-    championClass,
     sfxEnabled,
     crtEnabled,
     resting,
@@ -83,7 +82,7 @@ export function Sidebar() {
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-gold shadow-[0_0_8px_#ffd175]" />
               <span className="font-display text-xs font-semibold uppercase tracking-wider text-parchment">
-                {championClass}
+                {profile?.username ? profile.username.toUpperCase() : 'ASHEN HERO'}
               </span>
             </div>
             <span className="rounded border border-gold/20 bg-gold/10 px-2 py-0.5 font-mono text-[11px] font-bold text-gold">

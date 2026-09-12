@@ -5,7 +5,6 @@ import { soundFx } from '../lib/audio'
 import { PREVIEW_TOKEN, previewAttributes, previewProfile, previewTasks } from '../lib/previewData'
 import type {
   ActiveTab,
-  ChampionClass,
   InventoryItem,
   Profile,
   ProfileAttribute,
@@ -118,7 +117,6 @@ interface GameState {
   coins: number
   streakInfo: StreakInfo | null
   activeTab: ActiveTab
-  championClass: ChampionClass
   sfxEnabled: boolean
   crtEnabled: boolean
   resting: boolean
@@ -138,7 +136,6 @@ interface GameState {
   buyItem: (itemId: number) => boolean
   equipItem: (itemId: number) => void
   setActiveTab: (tab: ActiveTab) => void
-  setChampionClass: (cls: ChampionClass) => void
   toggleSfx: () => void
   toggleCrt: () => void
   restAtBonfire: () => void
@@ -201,7 +198,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   coins: getStoredCoins(),
   streakInfo: null,
   activeTab: 'sanctuary',
-  championClass: 'KNIGHT',
   sfxEnabled: true,
   crtEnabled: false,
   resting: false,
@@ -214,11 +210,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   setActiveTab: (tab) => {
     soundFx.playClick()
     set({ activeTab: tab })
-  },
-
-  setChampionClass: (cls) => {
-    soundFx.playClick()
-    set({ championClass: cls })
   },
 
   toggleSfx: () => {
