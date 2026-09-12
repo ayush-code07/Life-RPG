@@ -21,13 +21,14 @@ interface QuestBoardProps {
   quests: Task[]
   busy: boolean
   onComplete: (taskId: number) => Promise<void>
+  onEdit?: (quest: Task) => void
   onDelete?: (taskId: number) => Promise<void>
   onOpenCreateModal?: () => void
 }
 
 type FilterType = 'ALL' | 'ACTIVE' | 'DONE'
 
-export function QuestBoard({ quests, busy, onComplete, onDelete, onOpenCreateModal }: QuestBoardProps) {
+export function QuestBoard({ quests, busy, onComplete, onEdit, onDelete, onOpenCreateModal }: QuestBoardProps) {
   const [filter, setFilter] = useState<FilterType>('ALL')
   const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null)
 
@@ -152,6 +153,7 @@ export function QuestBoard({ quests, busy, onComplete, onDelete, onOpenCreateMod
                 key={quest.task_id}
                 quest={quest}
                 onComplete={onComplete}
+                onEdit={onEdit}
                 onDelete={onDelete}
                 disabled={busy}
               />

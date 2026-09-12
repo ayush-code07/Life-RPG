@@ -6,6 +6,7 @@ import { BonfireScene } from '../character/BonfireScene'
 import { BossRaidWidget } from './BossRaidWidget'
 import { QuestBoard } from '../quests/QuestBoard'
 import { CreateQuestModal } from '../quests/CreateQuestModal'
+import { EditQuestModal } from '../quests/EditQuestModal'
 import { AttributesView } from '../views/AttributesView'
 import { RewardsView } from '../views/RewardsView'
 import { ArmoryView } from '../views/ArmoryView'
@@ -13,9 +14,11 @@ import { ChroniclesView } from '../views/ChroniclesView'
 import { CelebrationModal } from '../ui/CelebrationModal'
 import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
+import type { Task } from '../../types/rpg'
 
 export function Dashboard() {
   const [createQuestOpen, setCreateQuestOpen] = useState(false)
+  const [editingQuest, setEditingQuest] = useState<Task | null>(null)
   const accessToken = useAuthStore((state) => state.accessToken)
   const preview = useAuthStore((state) => state.preview)
   const {
@@ -28,6 +31,7 @@ export function Dashboard() {
     hydrate,
     completeQuest,
     addQuest,
+    updateQuest,
     deleteQuest,
     clearError,
   } = useGameStore()
@@ -86,6 +90,7 @@ export function Dashboard() {
                   onComplete={async (taskId) => {
                     if (accessToken) await completeQuest(accessToken, taskId)
                   }}
+                  onEdit={(quest) => setEditingQuest(quest)}
                   onDelete={async (taskId) => {
                     if (accessToken) await deleteQuest(accessToken, taskId)
                   }}
@@ -116,6 +121,17 @@ export function Dashboard() {
         busy={loading || syncing}
         onCreate={async (input) => {
           if (accessToken) await addQuest(accessToken, input)
+        }}
+      />
+
+      {/* Dialog Modal for Updating Existing Quests */}
+      <EditQuestModal
+        quest={editingQuest}
+        isOpen={Boolean(editingQuest)}
+        onClose={() => setEditingQuest(null)}
+        busy={loading || syncing}
+        onSave={async (taskId, updates) => {
+          if (accessToken) await updateQuest(accessToken, taskId, updates)
         }}
       />
     </div>
