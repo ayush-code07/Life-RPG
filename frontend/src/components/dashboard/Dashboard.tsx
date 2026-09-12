@@ -76,9 +76,9 @@ export function Dashboard() {
           {/* Tab Views */}
           {activeTab === 'sanctuary' && (
             <div className="grid gap-6 lg:grid-cols-[minmax(320px,420px)_1fr]">
-              {/* Left Column: Bonfire & Level Progress & Post Quest Button */}
+              {/* Left Column: Bonfire, Level Progress & Core Abilities */}
               <div>
-                <BonfireScene onOpenQuestModal={() => setCreateQuestOpen(true)} />
+                <BonfireScene />
               </div>
 
               {/* Right Column: World Boss & Quest Board */}

@@ -1,15 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { useGameStore } from '../../store/gameStore'
-import { soundFx } from '../../lib/audio'
 import { PixelHeroSprite } from './PixelHeroSprite'
 
-interface BonfireSceneProps {
-  onOpenQuestModal?: () => void
-}
-
-export function BonfireScene({ onOpenQuestModal }: BonfireSceneProps) {
+export function BonfireScene() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const { profile, resting, restAtBonfire } = useGameStore()
+  const { profile, resting, restAtBonfire, attributes } = useGameStore()
 
   const level = profile?.current_level ?? 12
   const currentXP = profile?.progress_xp ?? 320
@@ -221,26 +216,108 @@ export function BonfireScene({ onOpenQuestModal }: BonfireSceneProps) {
         </div>
       </div>
 
-      {/* Post New Quest Button Below Level */}
-      {onOpenQuestModal && (
-        <button
-          type="button"
-          onClick={() => {
-            soundFx.playClick()
-            onOpenQuestModal()
-          }}
-          className="group flex w-full items-center justify-between rounded-xl border border-[#4a3a24] bg-gradient-to-r from-[#17120c] via-[#1c160f] to-[#140f0a] px-4 py-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.4)] transition-all hover:border-gold/60 hover:shadow-[0_0_20px_rgba(226,179,104,0.15)] active:scale-[0.98]"
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="font-display text-xs sm:text-sm font-bold tracking-wider text-gold group-hover:text-gold-bright transition-colors">
-              + POST NEW QUEST TO NOTICE BOARD
-            </span>
+      {/* Four Core Abilities Card */}
+      <div className="rounded-xl border border-[#382d20] bg-[#14110e] p-3.5 shadow-md space-y-3">
+        <div className="flex items-center justify-between border-b border-[#262018] pb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">🛡️</span>
+            <h4 className="font-display text-xs font-bold uppercase tracking-wider text-parchment">
+              CORE ABILITIES
+            </h4>
           </div>
-          <span className="font-mono text-xs text-gold/70 group-hover:text-gold group-hover:translate-x-0.5 transition-all">
-            ▼
-          </span>
-        </button>
-      )}
+          <span className="font-mono text-[10px] text-muted-dark">MASTERY</span>
+        </div>
+
+        <div className="space-y-2.5">
+          {[
+            {
+              name: 'STRENGTH',
+              icon: '⚔️',
+              matchKey: 'strength',
+              matchId: 1,
+              defaultVal: 18,
+              defaultXp: 45,
+              barColor: 'from-[#e65c24] to-[#ffd175]',
+              textColor: 'text-amber-300',
+            },
+            {
+              name: 'INTELLECT',
+              icon: '🧠',
+              matchKey: 'intellect',
+              matchId: 2,
+              defaultVal: 22,
+              defaultXp: 75,
+              barColor: 'from-[#2563eb] to-[#60a5fa]',
+              textColor: 'text-blue-300',
+            },
+            {
+              name: 'VITALITY',
+              icon: '❤️',
+              matchKey: 'vitality',
+              matchId: 5,
+              defaultVal: 16,
+              defaultXp: 30,
+              barColor: 'from-[#e11d48] to-[#fb7185]',
+              textColor: 'text-rose-300',
+            },
+            {
+              name: 'FOCUS',
+              icon: '✨',
+              matchKey: 'discipline',
+              matchId: 3,
+              defaultVal: 24,
+              defaultXp: 90,
+              barColor: 'from-[#ca8a04] to-[#fef08a]',
+              textColor: 'text-yellow-300',
+            },
+          ].map((ability) => {
+            const found = (attributes || []).find(
+              (a) =>
+                a.attribute_name?.toLowerCase().includes(ability.matchKey) ||
+                a.attribute_name?.toLowerCase().includes(ability.name.toLowerCase()) ||
+                a.attribute_id === ability.matchId
+            )
+            const val = found?.attribute_value ?? ability.defaultVal
+            const xp = (found?.attribute_xp ?? ability.defaultXp) % 100
+            const max = 100
+
+            return (
+              <div
+                key={ability.name}
+                className="group rounded-lg border border-[#262018] bg-[#0e0c0a] p-2.5 transition-all hover:border-gold/40 hover:bg-[#16120e]"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base select-none">{ability.icon}</span>
+                    <span className={`font-display text-xs font-bold tracking-wider ${ability.textColor}`}>
+                      {ability.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-xs font-black text-gold">
+                      LVL {val}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="space-y-1">
+                  <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-[#181410] border border-[#2e261d]">
+                    <div
+                      className={`h-full rounded-full bg-gradient-to-r ${ability.barColor} transition-all duration-500`}
+                      style={{ width: `${(xp / max) * 100}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] font-mono text-muted-dark">
+                    <span>PROGRESS</span>
+                    <span>{xp} / {max} XP</span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
