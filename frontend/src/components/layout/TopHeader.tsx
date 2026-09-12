@@ -34,11 +34,10 @@ const CLASS_CONFIG: Record<
 
 export function TopHeader() {
   const user = useAuthStore((state) => state.user)
-  const { profile, championClass, setChampionClass } = useGameStore()
+  const { profile, championClass, setChampionClass, coins } = useGameStore()
 
   const level = profile?.current_level ?? 12
   const streak = profile?.current_streak ?? 7
-  const gold = Math.max(120, (profile?.total_xp ?? 0) + 240)
   const currentClassInfo = CLASS_CONFIG[championClass]
 
   const classes: ChampionClass[] = ['SORC', 'KNIGHT', 'RONIN', 'ROGUE']
@@ -68,7 +67,7 @@ export function TopHeader() {
           </div>
           <div className="flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs font-semibold text-gold">
             <span>🪙</span>
-            <span className="font-mono">{gold}</span>
+            <span className="font-mono">{coins}</span>
           </div>
           <button
             type="button"

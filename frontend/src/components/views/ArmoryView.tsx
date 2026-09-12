@@ -8,102 +8,90 @@ const RARITY_COLORS: Record<string, { border: string; bg: string; text: string }
 }
 
 export function ArmoryView() {
-  const { inventory } = useGameStore()
+  const { inventory, shopItems, equipItem, setActiveTab } = useGameStore()
 
-  const defaultItems = [
-    {
-      id: 1,
-      name: 'Ashen Greatsword',
-      type: 'Weapon',
-      desc: 'Heavy blade forged in the primordial kiln. Scales with Strength.',
-      rarity: 'epic',
-      equipped: true,
-      icon: '🗡️',
-    },
-    {
-      id: 2,
-      name: 'Flask of Crimson Embers',
-      type: 'Consumable',
-      desc: 'Restores stamina and clears cognitive fatigue upon drinking.',
-      rarity: 'rare',
-      equipped: false,
-      icon: '🧪',
-    },
-    {
-      id: 3,
-      name: 'Ring of Daily Resolve',
-      type: 'Relic',
-      desc: 'Grants +10% bonus XP on quests completed before noon.',
-      rarity: 'legendary',
-      equipped: true,
-      icon: '💍',
-    },
-    {
-      id: 4,
-      name: 'Cinder Cloak',
-      type: 'Armor',
-      desc: 'Woven from flame-retardant ash threads. Shields against burnout.',
-      rarity: 'rare',
-      equipped: false,
-      icon: '🥋',
-    },
-    {
-      id: 5,
-      name: 'Scroll of Ancient Wisdom',
-      type: 'Tome',
-      desc: 'Contains forgotten paradigms from master codex scribes.',
-      rarity: 'common',
-      equipped: false,
-      icon: '📜',
-    },
-  ]
-
-  const items = inventory.length > 0 ? inventory : defaultItems
+  // Combined purchased gear and inventory
+  const purchasedGear = shopItems.filter((i) => i.isPurchased)
+  const items = purchasedGear.length > 0 ? purchasedGear : shopItems.slice(0, 3)
 
   return (
     <div className="space-y-6">
-      <header className="border-b border-[#262018] pb-3">
-        <h2 className="font-display text-2xl font-bold tracking-wide text-parchment">
-          ARMORY & VAULT
-        </h2>
-        <p className="text-xs text-muted">
-          Equip relics, weapons, and consumables discovered through quest streaks and progression.
-        </p>
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#262018] pb-3">
+        <div>
+          <h2 className="font-display text-2xl font-bold tracking-wide text-parchment">
+            ARMORY & VAULT
+          </h2>
+          <p className="text-xs text-muted">
+            Manage your unlocked hero gear, weapons, cloaks, and active equipment.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('rewards')}
+          className="flex items-center gap-2 rounded-xl border border-gold/40 bg-gold/15 px-4 py-2 font-display text-xs font-bold uppercase tracking-wider text-gold hover:bg-gold/25 transition-all shadow-[0_0_15px_rgba(226,179,104,0.15)]"
+        >
+          <span>🪙</span>
+          <span>VISIT REWARDS BAZAAR</span>
+        </button>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item: any) => {
           const rarity = (item.rarity || 'common').toLowerCase()
           const style = RARITY_COLORS[rarity] || RARITY_COLORS.common
+          const isEquipped = item.isEquipped
+
           return (
             <div
               key={item.id || item.inventory_id}
-              className={`relative rounded-xl border ${style.border} ${style.bg} p-4 shadow-md transition-all hover:scale-[1.02]`}
+              className={`relative flex flex-col justify-between rounded-xl border ${style.border} ${style.bg} p-4 shadow-md transition-all hover:scale-[1.02]`}
             >
-              {item.equipped && (
-                <span className="absolute right-3 top-3 rounded border border-gold/40 bg-gold/15 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-gold">
-                  EQUIPPED
-                </span>
-              )}
-
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[#382d20] bg-[#100d0a] text-2xl">
-                  {item.icon || '🗡️'}
-                </div>
-
-                <div>
-                  <h3 className={`font-display text-sm font-bold ${style.text}`}>
-                    {item.name || item.item_name}
-                  </h3>
-                  <p className="text-[10px] font-mono uppercase tracking-wider text-muted">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] uppercase text-muted">
                     {item.type || item.item_type} • {rarity}
-                  </p>
+                  </span>
+                  {isEquipped && (
+                    <span className="rounded border border-moss/40 bg-moss/15 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-moss">
+                      ✓ WEARING
+                    </span>
+                  )}
                 </div>
+
+                <div className="mt-3 flex items-center gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[#382d20] bg-[#100d0a] text-2xl shadow-inner">
+                    {item.icon || '🗡️'}
+                  </div>
+
+                  <div>
+                    <h3 className={`font-display text-sm font-bold ${style.text}`}>
+                      {item.name || item.item_name}
+                    </h3>
+                    <p className="font-mono text-[10px] text-moss">
+                      {item.statBonus || '+10 Combat Power'}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="mt-3 text-xs text-muted leading-relaxed">
+                  {item.desc || item.description}
+                </p>
               </div>
 
-              <p className="mt-3 text-xs text-muted">
-                {item.desc || item.description}
-              </p>
+              <div className="mt-4 pt-3 border-t border-[#262018] flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => equipItem(item.id)}
+                  className={`rounded-lg px-3 py-1 font-display text-xs font-bold uppercase tracking-wider transition-all ${
+                    isEquipped
+                      ? 'border border-moss/40 bg-moss/20 text-moss'
+                      : 'border border-gold/30 bg-gold/10 text-gold hover:bg-gold/20'
+                  }`}
+                >
+                  {isEquipped ? 'UNEQUIP' : 'EQUIP'}
+                </button>
+              </div>
             </div>
           )
         })}

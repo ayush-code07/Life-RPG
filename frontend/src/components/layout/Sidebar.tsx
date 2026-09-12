@@ -13,6 +13,7 @@ export function Sidebar() {
     sfxEnabled,
     crtEnabled,
     resting,
+    coins,
     setActiveTab,
     toggleSfx,
     toggleCrt,
@@ -21,7 +22,6 @@ export function Sidebar() {
 
   const level = profile?.current_level ?? 12
   const streak = profile?.current_streak ?? 7
-  const gold = Math.max(120, (profile?.total_xp ?? 0) + 240)
 
   const navItems: Array<{ id: ActiveTab; label: string; sub: string; icon: string }> = [
     {
@@ -35,6 +35,12 @@ export function Sidebar() {
       label: 'ATTRIBUTES',
       sub: 'Stats & Mastery',
       icon: '⚔️',
+    },
+    {
+      id: 'rewards',
+      label: 'REWARDS',
+      sub: 'Bazaar & Wearables',
+      icon: '🪙',
     },
     {
       id: 'armory',
@@ -88,7 +94,7 @@ export function Sidebar() {
           <div className="mt-3 flex items-center justify-between border-t border-[#262018] pt-2 text-xs">
             <div className="flex items-center gap-1.5 text-muted">
               <span className="text-gold">🪙</span>
-              <span className="font-mono font-medium text-parchment">{gold}</span>
+              <span className="font-mono font-medium text-parchment">{coins}</span>
             </div>
             <div className="flex items-center gap-1.5 text-muted">
               <span className="text-ember">🔥</span>

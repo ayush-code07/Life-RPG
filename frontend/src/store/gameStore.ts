@@ -22,11 +22,100 @@ export interface BossState {
   isDefeated: boolean
 }
 
+import type { ShopItem } from '../types/rpg'
+
+export const INITIAL_SHOP_ITEMS: ShopItem[] = [
+  {
+    id: 1,
+    name: 'Ashen Greatsword',
+    type: 'weapon',
+    price: 15,
+    description: 'Forged in the primordial kiln. Emits ember sparks and scales with Strength.',
+    rarity: 'epic',
+    icon: '🗡️',
+    statBonus: '+15 Strength • +50 Boss Damage',
+    isPurchased: true,
+    isEquipped: true,
+  },
+  {
+    id: 2,
+    name: 'Helm of the Cinder Knight',
+    type: 'armor',
+    price: 10,
+    description: 'Forged steel with an incandescent visor. Shields against distractions.',
+    rarity: 'rare',
+    icon: '🪖',
+    statBonus: '+8 Focus • +5 Vitality',
+  },
+  {
+    id: 3,
+    name: 'Cloak of the Ashen Sovereign',
+    type: 'cloak',
+    price: 25,
+    description: 'Flowing mantle woven with flame-treated silk. Imbues character with royal stature.',
+    rarity: 'legendary',
+    icon: '🥋',
+    statBonus: '+20 Mastery • 2x Streak Glow',
+  },
+  {
+    id: 4,
+    name: 'Pyromancer Flame Staff',
+    type: 'weapon',
+    price: 20,
+    description: 'Channeling wand crowned with a continuous ember crystal.',
+    rarity: 'epic',
+    icon: '🪄',
+    statBonus: '+18 Intellect • +25 Spell XP',
+  },
+  {
+    id: 5,
+    name: 'Aegis of the Sunken Shield',
+    type: 'shield',
+    price: 12,
+    description: 'Heavy crest shield bearing the sigil of the First Bonfire.',
+    rarity: 'rare',
+    icon: '🛡️',
+    statBonus: '+12 Vitality • +10 Discipline',
+  },
+  {
+    id: 6,
+    name: 'Boots of Swift Resolve',
+    type: 'armor',
+    price: 8,
+    description: 'Lightweight leather greaves that hasten daily task completions.',
+    rarity: 'common',
+    icon: '👢',
+    statBonus: '+5 Dexterity • Fast Step',
+  },
+  {
+    id: 7,
+    name: 'Ring of Everlasting Fire',
+    type: 'relic',
+    price: 30,
+    description: 'Ancient artifact that permanently multiplies streak XP gains.',
+    rarity: 'legendary',
+    icon: '💍',
+    statBonus: '+25 All Stats • +15% XP',
+  },
+  {
+    id: 8,
+    name: 'Crown of the Eclipse',
+    type: 'armor',
+    price: 45,
+    description: 'Mythical crown radiating dark solar energy.',
+    rarity: 'legendary',
+    icon: '👑',
+    statBonus: '+30 Sovereign Authority',
+  },
+]
+
 interface GameState {
   profile: Profile | null
   attributes: ProfileAttribute[]
   tasks: Task[]
   inventory: InventoryItem[]
+  shopItems: ShopItem[]
+  coins: number
   streakInfo: StreakInfo | null
   activeTab: ActiveTab
   championClass: ChampionClass
@@ -46,6 +135,8 @@ interface GameState {
     accessToken: string,
     input: { title: string; description?: string; difficulty: 1 | 2 | 3 | 4 | 5 }
   ) => Promise<void>
+  buyItem: (itemId: number) => boolean
+  equipItem: (itemId: number) => void
   setActiveTab: (tab: ActiveTab) => void
   setChampionClass: (cls: ChampionClass) => void
   toggleSfx: () => void
@@ -85,11 +176,29 @@ function applyCompletionToProfile(current: Profile | null, result: TaskCompletio
   }
 }
 
+const getStoredCoins = (): number => {
+  if (typeof window === 'undefined') return 25
+  const val = localStorage.getItem('ashen_coins')
+  return val !== null ? parseInt(val, 10) : 25
+}
+
+const getStoredShopItems = (): ShopItem[] => {
+  if (typeof window === 'undefined') return INITIAL_SHOP_ITEMS
+  try {
+    const val = localStorage.getItem('ashen_shop_items')
+    return val ? JSON.parse(val) : INITIAL_SHOP_ITEMS
+  } catch {
+    return INITIAL_SHOP_ITEMS
+  }
+}
+
 export const useGameStore = create<GameState>((set, get) => ({
   profile: null,
   attributes: [],
   tasks: [],
   inventory: [],
+  shopItems: getStoredShopItems(),
+  coins: getStoredCoins(),
   streakInfo: null,
   activeTab: 'sanctuary',
   championClass: 'KNIGHT',
@@ -130,6 +239,70 @@ export const useGameStore = create<GameState>((set, get) => ({
     setTimeout(() => {
       set({ resting: false })
     }, 1500)
+  },
+
+  buyItem: (itemId: number) => {
+    const item = get().shopItems.find((i) => i.id === itemId)
+    if (!item || item.isPurchased) return false
+    const currentCoins = get().coins
+    if (currentCoins < item.price) {
+      set({ error: `Not enough gold coins! Requires ${item.price} coins.` })
+      return false
+    }
+
+    const newCoins = currentCoins - item.price
+    const updatedShop = get().shopItems.map((i) =>
+      i.id === itemId ? { ...i, isPurchased: true, isEquipped: true } : i
+    )
+
+    // Add to inventory
+    const newInvItem: InventoryItem = {
+      inventory_id: Date.now(),
+      profile_id: get().profile?.id ?? 'hero',
+      item_id: item.id,
+      item_name: item.name,
+      item_type: item.type,
+      description: item.description,
+      rarity: item.rarity,
+      quantity: 1,
+      acquired_at: new Date().toISOString(),
+      equipped: true,
+    }
+
+    soundFx.playPurchaseSound()
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ashen_coins', String(newCoins))
+      localStorage.setItem('ashen_shop_items', JSON.stringify(updatedShop))
+    }
+
+    set({
+      coins: newCoins,
+      shopItems: updatedShop,
+      inventory: [newInvItem, ...get().inventory],
+      error: null,
+    })
+    return true
+  },
+
+  equipItem: (itemId: number) => {
+    soundFx.playClick()
+    const updatedShop = get().shopItems.map((i) => {
+      if (i.id === itemId) {
+        return { ...i, isEquipped: !i.isEquipped }
+      }
+      return i
+    })
+    const updatedInv = get().inventory.map((inv) => {
+      if (inv.item_id === itemId) {
+        return { ...inv, equipped: !inv.equipped }
+      }
+      return inv
+    })
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ashen_shop_items', JSON.stringify(updatedShop))
+    }
+    set({ shopItems: updatedShop, inventory: updatedInv })
   },
 
   clearError: () => set({ error: null }),
@@ -219,11 +392,23 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (accessToken === PREVIEW_TOKEN) {
         const current = get().profile ?? previewProfile
         const gained = applyXPGain(current.current_level, current.total_xp, target.xp_reward)
+        
+        // Coins economy: +1 coin per task + 10 coins per level up
+        const earnedCoins = 1 + (gained.levelsGained * 10)
+        const updatedCoins = get().coins + earnedCoins
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('ashen_coins', String(updatedCoins))
+        }
+
+        soundFx.playCoinSound()
         if (gained.levelsGained > 0) {
           setTimeout(() => soundFx.playLevelUp(), 400)
         }
+
         const result: TaskCompletionResponse = {
-          message: 'Quest complete.',
+          message: gained.levelsGained > 0 
+            ? `🎉 Level Up! (+${gained.levelsGained * 10} Coins)` 
+            : 'Quest complete. (+1 Coin)',
           task: { task_id: target.task_id, title: target.title, xp_awarded: target.xp_reward },
           profile: {
             id: current.id,
@@ -238,6 +423,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           },
         }
         set({
+          coins: updatedCoins,
           lastCompletion: result,
           syncing: false,
           profile: applyCompletionToProfile(current, result),
@@ -246,10 +432,22 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
 
       const result = await rpgApi.completeTask(accessToken, taskId)
-      if (result.profile.levels_gained > 0) {
+      
+      // Coins economy: +1 coin per task + 10 coins per level up
+      const levelsGained = result.profile.levels_gained || 0
+      const earnedCoins = 1 + (levelsGained * 10)
+      const updatedCoins = get().coins + earnedCoins
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ashen_coins', String(updatedCoins))
+      }
+
+      soundFx.playCoinSound()
+      if (levelsGained > 0) {
         setTimeout(() => soundFx.playLevelUp(), 400)
       }
+
       set({
+        coins: updatedCoins,
         lastCompletion: result,
         syncing: false,
         profile: applyCompletionToProfile(get().profile, result),

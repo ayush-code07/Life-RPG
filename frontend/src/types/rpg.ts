@@ -1,7 +1,20 @@
 export type TaskDifficulty = 1 | 2 | 3 | 4 | 5
 export type TaskStatus = 'pending' | 'active' | 'completed' | 'archived'
-export type ActiveTab = 'sanctuary' | 'attributes' | 'armory' | 'chronicles'
+export type ActiveTab = 'sanctuary' | 'attributes' | 'rewards' | 'armory' | 'chronicles'
 export type ChampionClass = 'SORC' | 'KNIGHT' | 'RONIN' | 'ROGUE'
+
+export interface ShopItem {
+  id: number
+  name: string
+  type: 'weapon' | 'armor' | 'cloak' | 'shield' | 'relic'
+  price: number
+  description: string
+  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+  icon: string
+  statBonus: string
+  isPurchased?: boolean
+  isEquipped?: boolean
+}
 
 export interface Profile {
   id: string

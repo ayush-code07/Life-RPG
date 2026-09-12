@@ -6,6 +6,7 @@ import { BonfireScene } from '../character/BonfireScene'
 import { BossRaidWidget } from './BossRaidWidget'
 import { QuestBoard } from '../quests/QuestBoard'
 import { AttributesView } from '../views/AttributesView'
+import { RewardsView } from '../views/RewardsView'
 import { ArmoryView } from '../views/ArmoryView'
 import { ChroniclesView } from '../views/ChroniclesView'
 import { useAuthStore } from '../../store/authStore'
@@ -93,6 +94,7 @@ export function Dashboard() {
           )}
 
           {activeTab === 'attributes' && <AttributesView />}
+          {activeTab === 'rewards' && <RewardsView />}
           {activeTab === 'armory' && <ArmoryView />}
           {activeTab === 'chronicles' && <ChroniclesView />}
           </div>
