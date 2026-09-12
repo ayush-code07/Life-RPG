@@ -9,166 +9,247 @@ interface PixelHeroSpriteProps {
 export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: PixelHeroSpriteProps) {
   const { shopItems } = useGameStore()
 
-  // Find equipped wearables by item ID or type
+  // Find equipped wearables by item ID
   const isEquipped = (id: number) => shopItems.some((i) => i.id === id && i.isEquipped)
 
-  const hasGreatsword = isEquipped(1)
-  const hasCinderHelm = isEquipped(2)
-  const hasSovereignCloak = isEquipped(3)
-  const hasFlameStaff = isEquipped(4)
-  const hasSunkenShield = isEquipped(5)
-  const hasSwiftBoots = isEquipped(6)
-  const hasFireRing = isEquipped(7)
-  const hasEclipseCrown = isEquipped(8)
+  const hasSilverSword = isEquipped(1)
+  const hasVikingHelm = isEquipped(2)
+  const hasBucklerShield = isEquipped(3)
+  const hasHealthPotion = isEquipped(4)
+  const hasLeatherVest = isEquipped(5)
+  const hasGhostMask = isEquipped(6)
+  const hasGhostWisp = isEquipped(7)
+  const hasLanternHalberd = isEquipped(8)
+  const hasRoyalPlate = isEquipped(9)
+  const hasCrown = isEquipped(10)
+  const hasCloak = isEquipped(11)
 
   return (
-    <div className="relative inline-block" style={{ width: size, height: size }}>
-      {/* Relic Aura (Ring of Everlasting Fire) */}
-      {hasFireRing && (
-        <div className="absolute -inset-2 rounded-full border border-amber-500/40 bg-amber-500/10 shadow-[0_0_18px_#f59e0b] animate-pulse pointer-events-none" />
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+      {/* Ghost Wisp Companion (Floating Pet) */}
+      {hasGhostWisp && (
+        <div className="absolute -top-1 -right-1 z-20 animate-bounce pointer-events-none">
+          <svg width={size * 0.38} height={size * 0.38} viewBox="0 0 10 10" style={{ imageRendering: 'pixelated' }}>
+            {/* Ghost Head & Body */}
+            <rect x="2" y="1" width="6" height="5" fill="#e0f2fe" />
+            <rect x="1" y="2" width="8" height="4" fill="#bae6fd" />
+            <rect x="3" y="0" width="4" height="1" fill="#7dd3fc" />
+            {/* Wisp tail */}
+            <rect x="2" y="6" width="2" height="2" fill="#38bdf8" />
+            <rect x="5" y="6" width="2" height="1" fill="#38bdf8" />
+            <rect x="7" y="7" width="1" height="2" fill="#0284c7" />
+            {/* Blue Cute Face */}
+            <rect x="3" y="3" width="1.5" height="1.5" fill="#0369a1" />
+            <rect x="6" y="3" width="1.5" height="1.5" fill="#0369a1" />
+            <rect x="4" y="5" width="2" height="1" fill="#0284c7" />
+          </svg>
+        </div>
       )}
 
+      {/* Hero 24x24 Pixel Sprite */}
       <svg
         width={size}
         height={size}
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         style={{ imageRendering: 'pixelated' }}
         className="overflow-visible"
       >
-        {/* ================= CLOAK / MANTLE ================= */}
-        {hasSovereignCloak ? (
+        {/* ================= 0. GROUND SHADOW ================= */}
+        <ellipse cx="12" cy="22" rx="6" ry="1.5" fill="#000000" fillOpacity="0.4" />
+
+        {/* ================= 1. BACK CLOAK ================= */}
+        {hasCloak && (
           <>
-            {/* Royal Gold-trimmed Sovereign Mantle */}
-            <rect x="4" y="6" width="8" height="3" fill="#b45309" />
-            <rect x="3" y="7" width="2" height="6" fill="#78350f" />
-            <rect x="11" y="7" width="2" height="6" fill="#78350f" />
-            <rect x="3" y="12" width="2" height="2" fill="#fbbf24" />
-            <rect x="11" y="12" width="2" height="2" fill="#fbbf24" />
-          </>
-        ) : (
-          <>
-            {/* Standard Crimson Cape */}
-            <rect x="5" y="6" width="6" height="2" fill="#c83232" />
-            <rect x="4" y="7" width="2" height="4" fill="#991b1b" />
+            {/* Flowing Royal Crimson & Gold Mantle */}
+            <rect x="6" y="10" width="12" height="8" fill="#991b1b" />
+            <rect x="5" y="11" width="14" height="6" fill="#b91c1c" />
+            <rect x="5" y="17" width="14" height="2" fill="#fbbf24" />
+            <rect x="6" y="19" width="12" height="1" fill="#d97706" />
           </>
         )}
 
-        {/* ================= TORSO & ARMOR ================= */}
-        <rect x="6" y="7" width="4" height="4" fill="#4b5563" />
-        <rect x="7" y="8" width="2" height="2" fill="#9ca3af" />
+        {/* ================= 2. LEGS & SHOES ================= */}
+        {/* Dark Brown Trousers / Pants */}
+        <rect x="9" y="16" width="2.5" height="4" fill="#3f2010" />
+        <rect x="12.5" y="16" width="2.5" height="4" fill="#3f2010" />
+        {/* Dark Leather Boots / Shoes */}
+        <rect x="8" y="20" width="3.5" height="2" fill="#1c1008" />
+        <rect x="12.5" y="20" width="3.5" height="2" fill="#1c1008" />
+        <rect x="8" y="21" width="3.5" height="1" fill="#0a0502" />
+        <rect x="12.5" y="21" width="3.5" height="1" fill="#0a0502" />
+
+        {/* ================= 3. TORSO & SHIRT ================= */}
+        {hasRoyalPlate ? (
+          /* Blue Knight Steel Heavy Plate Armor */
+          <>
+            <rect x="8" y="10" width="8" height="6" fill="#1e3a8a" />
+            <rect x="9" y="11" width="6" height="4" fill="#2563eb" />
+            <rect x="11" y="11" width="2" height="4" fill="#93c5fd" />
+            {/* Heavy Steel Pauldrons (Shoulders) */}
+            <rect x="6" y="10" width="3" height="3" fill="#cbd5e1" />
+            <rect x="15" y="10" width="3" height="3" fill="#cbd5e1" />
+            <rect x="7" y="11" width="1" height="1" fill="#ffffff" />
+            <rect x="16" y="11" width="1" height="1" fill="#ffffff" />
+          </>
+        ) : hasLeatherVest ? (
+          /* Leather Bandit Vest */
+          <>
+            <rect x="8" y="10" width="8" height="6" fill="#78350f" />
+            <rect x="9" y="11" width="6" height="4" fill="#92400e" />
+            <rect x="10" y="11" width="4" height="2" fill="#b45309" />
+            {/* Studs */}
+            <rect x="9" y="12" width="1" height="1" fill="#fbbf24" />
+            <rect x="14" y="12" width="1" height="1" fill="#fbbf24" />
+          </>
+        ) : (
+          /* Base Blue Adventurer Tunic */
+          <>
+            <rect x="8" y="10" width="8" height="6" fill="#1d4ed8" />
+            <rect x="9" y="10" width="6" height="5" fill="#2563eb" />
+            <rect x="10" y="10" width="4" height="2" fill="#fed7aa" /> {/* Neck cutout */}
+          </>
+        )}
+
         {/* Belt */}
-        <rect x="6" y="11" width="4" height="1" fill="#78350f" />
-        <rect x="7" y="11" width="2" height="1" fill="#e2b368" />
+        <rect x="8" y="15" width="8" height="1.5" fill="#451a03" />
+        <rect x="11" y="15" width="2" height="1.5" fill="#eab308" />
 
-        {/* ================= LEGS & BOOTS ================= */}
-        {hasSwiftBoots ? (
+        {/* Health Potion on Belt */}
+        {hasHealthPotion && (
           <>
-            {/* Swift Resolve Golden Greaves */}
-            <rect x="6" y="12" width="1.5" height="2" fill="#d97706" />
-            <rect x="8.5" y="12" width="1.5" height="2" fill="#d97706" />
-            <rect x="5.5" y="14" width="2" height="2" fill="#fbbf24" />
-            <rect x="8.5" y="14" width="2" height="2" fill="#fbbf24" />
-          </>
-        ) : (
-          <>
-            {/* Standard Iron Greaves */}
-            <rect x="6" y="12" width="1.5" height="3" fill="#374151" />
-            <rect x="8.5" y="12" width="1.5" height="3" fill="#374151" />
-            <rect x="5.5" y="14" width="2" height="2" fill="#1f2937" />
-            <rect x="8.5" y="14" width="2" height="2" fill="#1f2937" />
+            <rect x="15" y="14" width="2" height="3" fill="#dc2626" />
+            <rect x="15.5" y="13.5" width="1" height="1" fill="#e2e8f0" />
+            <rect x="15" y="15" width="1" height="1" fill="#fca5a5" />
           </>
         )}
 
-        {/* ================= HEADWEAR / HELMET ================= */}
-        {hasEclipseCrown ? (
+        {/* ================= 4. ARMS & HANDS ================= */}
+        {/* Left Arm (Player's Right) */}
+        <rect x="6.5" y="11" width="2" height="4" fill="#1d4ed8" />
+        <rect x="6.5" y="14" width="2" height="2" fill="#fed7aa" /> {/* Left Hand */}
+
+        {/* Right Arm (Player's Left) */}
+        <rect x="15.5" y="11" width="2" height="4" fill="#1d4ed8" />
+        <rect x="15.5" y="14" width="2" height="2" fill="#fed7aa" /> {/* Right Hand */}
+
+        {/* ================= 5. HEAD & FACE ================= */}
+        {/* Face Base */}
+        <rect x="8" y="4" width="8" height="7" fill="#fed7aa" />
+        {/* Cheeks blush */}
+        <rect x="8" y="8" width="1.5" height="1" fill="#fca5a5" />
+        <rect x="14.5" y="8" width="1.5" height="1" fill="#fca5a5" />
+
+        {hasGhostMask ? (
+          /* Spirit Ghost Mask */
           <>
-            {/* Crown of the Eclipse */}
-            <rect x="5" y="1" width="6" height="2" fill="#fbbf24" />
-            <rect x="5" y="0" width="1" height="2" fill="#f59e0b" />
-            <rect x="7.5" y="0" width="1" height="2" fill="#ef4444" />
-            <rect x="10" y="0" width="1" height="2" fill="#f59e0b" />
-            {/* Face/Head Base */}
-            <rect x="6" y="3" width="4" height="4" fill="#e2b368" />
-            <rect x="7" y="4" width="2" height="1" fill="#1f2937" />
-          </>
-        ) : hasCinderHelm ? (
-          <>
-            {/* Helm of the Cinder Knight with Flame Plume & Ember Visor */}
-            <rect x="7" y="0" width="2" height="3" fill="#ea580c" />
-            <rect x="6" y="3" width="4" height="4" fill="#374151" />
-            <rect x="6.5" y="4" width="3" height="1" fill="#ff7738" />
-            <rect x="7" y="5" width="2" height="2" fill="#f59e0b" />
+            <rect x="8" y="4" width="8" height="7" fill="#e0f2fe" />
+            <rect x="9" y="6" width="2" height="2" fill="#0284c7" />
+            <rect x="13" y="6" width="2" height="2" fill="#0284c7" />
+            <rect x="10" y="9" width="4" height="1.5" fill="#0369a1" />
           </>
         ) : (
+          /* Expressive Cute Pixel Eyes & Smile (from inspiration image) */
           <>
-            {/* Standard Knight Helmet */}
-            <rect x="7" y="1" width="2" height="2" fill={pose === 'cast' ? '#60a5fa' : '#e65c24'} />
-            <rect x="6" y="3" width="4" height="4" fill="#9ca3af" />
-            <rect x="7" y="4" width="2" height="1" fill="#1f2937" />
-            <rect x="7" y="5" width="2" height="2" fill="#d1d5db" />
+            {/* Left Eye */}
+            <rect x="9" y="6" width="2" height="2" fill="#ffffff" />
+            <rect x="9.5" y="6.5" width="1.5" height="1.5" fill="#0f172a" />
+            {/* Right Eye */}
+            <rect x="13" y="6" width="2" height="2" fill="#ffffff" />
+            <rect x="13" y="6.5" width="1.5" height="1.5" fill="#0f172a" />
+            {/* Smile */}
+            <rect x="11" y="9" width="2" height="1" fill="#78350f" />
           </>
         )}
 
-        {/* ================= SHIELD (LEFT HAND) ================= */}
-        {hasSunkenShield ? (
+        {/* Shaggy Black Hair */}
+        <rect x="7" y="2" width="10" height="3" fill="#0f172a" />
+        <rect x="6" y="3" width="12" height="3" fill="#0f172a" />
+        <rect x="6" y="5" width="2" height="4" fill="#0f172a" />
+        <rect x="16" y="5" width="2" height="4" fill="#0f172a" />
+        <rect x="8" y="4" width="2" height="1" fill="#0f172a" />
+        <rect x="14" y="4" width="2" height="1" fill="#0f172a" />
+
+        {/* ================= 6. HEADWEAR OVERLAYS ================= */}
+        {hasCrown ? (
+          /* Royal 3-Spire Gold Crown with Ruby Jewels */
           <>
-            {/* Aegis of the Sunken Shield (Gold & Blue Crest) */}
-            <rect x="1" y={pose === 'cheer' ? 2 : 5} width="4" height="8" fill="#1e3a8a" />
-            <rect x="2" y={pose === 'cheer' ? 3 : 6} width="2" height="6" fill="#fbbf24" />
-            <rect x="2.5" y={pose === 'cheer' ? 4 : 7} width="1" height="4" fill="#f59e0b" />
+            <rect x="7" y="0" width="10" height="3" fill="#fbbf24" />
+            <rect x="7" y="0" width="2" height="3" fill="#f59e0b" />
+            <rect x="11" y="0" width="2" height="3" fill="#f59e0b" />
+            <rect x="15" y="0" width="2" height="3" fill="#f59e0b" />
+            {/* Ruby / Sapphire Gems */}
+            <rect x="7.5" y="1.5" width="1" height="1" fill="#ef4444" />
+            <rect x="11.5" y="1" width="1" height="1" fill="#3b82f6" />
+            <rect x="15.5" y="1.5" width="1" height="1" fill="#ef4444" />
+            <rect x="7" y="3" width="10" height="1" fill="#d97706" />
           </>
-        ) : (
+        ) : hasVikingHelm ? (
+          /* Viking Horned Helmet */
           <>
-            {/* Standard Shield */}
-            <rect x="2" y={pose === 'cheer' ? 3 : 6} width="3" height="6" fill="#e5e7eb" />
-            <rect x="3" y={pose === 'cheer' ? 4 : 7} width="1" height="4" fill="#3b82f6" />
+            {/* Helmet Cap */}
+            <rect x="6.5" y="2" width="11" height="4" fill="#78350f" />
+            <rect x="7" y="1.5" width="10" height="2" fill="#92400e" />
+            <rect x="6.5" y="4.5" width="11" height="1.5" fill="#475569" /> {/* Metal rim */}
+            <rect x="11.5" y="4.5" width="1" height="1.5" fill="#fbbf24" /> {/* Center rivet */}
+            {/* Left Horn */}
+            <rect x="4" y="1" width="3" height="2" fill="#f1f5f9" />
+            <rect x="3" y="0" width="2" height="2" fill="#ffffff" />
+            <rect x="2.5" y="0" width="1" height="1" fill="#e2e8f0" />
+            {/* Right Horn */}
+            <rect x="17" y="1" width="3" height="2" fill="#f1f5f9" />
+            <rect x="19" y="0" width="2" height="2" fill="#ffffff" />
+            <rect x="20.5" y="0" width="1" height="1" fill="#e2e8f0" />
+          </>
+        ) : null}
+
+        {/* ================= 7. SHIELD (LEFT HAND) ================= */}
+        {hasBucklerShield && (
+          /* Round Wooden Buckler Shield */
+          <>
+            <rect x="2.5" y="11" width="5" height="7" fill="#78350f" />
+            <rect x="2" y="12" width="6" height="5" fill="#92400e" />
+            <rect x="1.5" y="13" width="7" height="3" fill="#78350f" />
+            {/* Brass Rim & Center Boss */}
+            <rect x="3" y="11" width="4" height="1" fill="#fbbf24" />
+            <rect x="3" y="17" width="4" height="1" fill="#fbbf24" />
+            <rect x="4" y="13.5" width="2" height="2" fill="#f59e0b" />
+            <rect x="4.5" y="14" width="1" height="1" fill="#ffffff" />
           </>
         )}
 
-        {/* ================= WEAPON (RIGHT HAND) ================= */}
-        {hasFlameStaff ? (
-          /* Pyromancer Flame Staff */
-          pose === 'attack' ? (
-            <>
-              <rect x="10" y="7" width="7" height="1.5" fill="#78350f" />
-              <circle cx="17" cy="7.5" r="1.5" fill="#f97316" />
-            </>
-          ) : (
-            <>
-              <rect x="11" y="2" width="1" height="10" fill="#78350f" />
-              <circle cx="11.5" cy="2.5" r="1.5" fill="#f97316" />
-              <circle cx="11.5" cy="2.5" r="0.8" fill="#fef08a" />
-            </>
-          )
-        ) : hasGreatsword ? (
-          /* Ashen Greatsword */
-          pose === 'attack' ? (
-            <>
-              <rect x="10" y="7" width="7" height="2" fill="#e5e7eb" />
-              <rect x="11" y="7.5" width="5" height="1" fill="#f97316" />
-              <rect x="9" y="6" width="1.5" height="4" fill="#e2b368" />
-            </>
-          ) : (
-            <>
-              <rect x="11" y="3" width="1.5" height="10" fill="#e5e7eb" />
-              <rect x="11.5" y="4" width="0.8" height="7" fill="#f97316" />
-              <rect x="10" y="8" width="3.5" height="1" fill="#e2b368" />
-            </>
-          )
-        ) : (
-          /* Default Arming Sword */
-          pose === 'attack' ? (
-            <>
-              <rect x="10" y="7" width="5" height="1.5" fill="#d1d5db" />
-              <rect x="9" y="6" width="1" height="3.5" fill="#e2b368" />
-            </>
-          ) : (
-            <>
-              <rect x="11" y="5" width="1" height="8" fill="#d1d5db" />
-              <rect x="10" y="8" width="3" height="1" fill="#e2b368" />
-            </>
-          )
-        )}
+        {/* ================= 8. WEAPON (RIGHT HAND) ================= */}
+        {hasLanternHalberd ? (
+          /* Lantern Halberd Polearm with Glowing Lantern */
+          <>
+            {/* Wooden Shaft */}
+            <rect x="18" y="2" width="1.5" height="19" fill="#78350f" />
+            {/* Spear tip */}
+            <rect x="17.5" y="0" width="2.5" height="3" fill="#e2e8f0" />
+            <rect x="18" y="0" width="1.5" height="1" fill="#ffffff" />
+            {/* Hook */}
+            <rect x="19.5" y="4" width="2.5" height="1" fill="#94a3b8" />
+            <rect x="21" y="5" width="1" height="2" fill="#64748b" />
+            {/* Hanging Lantern with glowing ember fire */}
+            <rect x="20" y="7" width="3" height="4" fill="#0f172a" />
+            <rect x="20.5" y="7.5" width="2" height="3" fill="#f59e0b" />
+            <rect x="21" y="8" width="1" height="2" fill="#fef08a" />
+            <circle cx="21.5" cy="9" r="2.5" fill="#fbbf24" fillOpacity="0.25" />
+          </>
+        ) : hasSilverSword ? (
+          /* Silver Adventurer Sword (Diagonal Upward Blade like inspiration image) */
+          <>
+            {/* Crossguard & Pommel */}
+            <rect x="16.5" y="13" width="3" height="1" fill="#fbbf24" />
+            <rect x="17.5" y="14" width="1" height="2" fill="#78350f" />
+            <rect x="17" y="16" width="2" height="1" fill="#fbbf24" />
+            {/* Silver Blade */}
+            <rect x="17.5" y="7" width="2" height="6" fill="#f8fafc" />
+            <rect x="18.5" y="6" width="2" height="6" fill="#f8fafc" />
+            <rect x="19.5" y="4" width="2" height="4" fill="#ffffff" />
+            <rect x="20.5" y="3" width="1.5" height="2" fill="#ffffff" />
+            <rect x="17.5" y="8" width="1" height="5" fill="#94a3b8" />
+          </>
+        ) : null}
       </svg>
     </div>
   )

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { soundFx } from '../../lib/audio'
 import { useGameStore } from '../../store/gameStore'
+import { PixelHeroSprite } from '../character/PixelHeroSprite'
 import type { ShopItem } from '../../types/rpg'
 
 type ShopFilter = 'all' | 'weapon' | 'armor' | 'cloak' | 'shield' | 'relic'
@@ -34,7 +35,10 @@ const RARITY_THEMES: Record<string, { border: string; bg: string; badge: string;
 
 export function RewardsView() {
   const [filter, setFilter] = useState<ShopFilter>('all')
-  const { coins, shopItems, buyItem, equipItem } = useGameStore()
+  const { coins, shopItems, buyItem, equipItem, profile } = useGameStore()
+
+  const level = profile?.current_level ?? 3
+  const equippedCount = shopItems.filter((i) => i.isEquipped).length
 
   const filteredItems = shopItems.filter((item) => {
     if (filter === 'all') return true
@@ -53,7 +57,7 @@ export function RewardsView() {
             </h2>
           </div>
           <p className="mt-1 text-xs text-muted">
-            Earn coins by completing quests (+1 coin) and leveling up (+10 coins) to unlock powerful hero wearables.
+            Earn coins by completing quests (+1 coin) and leveling up (+10 coins). Purchase gear to equip and customize your character sprite!
           </p>
         </div>
 
@@ -66,6 +70,38 @@ export function RewardsView() {
           </div>
         </div>
       </header>
+
+      {/* Hero Live Dressing Pedestal & Intro */}
+      <div className="rounded-2xl border border-[#382d20] bg-gradient-to-r from-[#14110e] via-[#1a1510] to-[#120f0c] p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          {/* Avatar Pedestal Box (Lilac & Dark Fantasy Frame) */}
+          <div className="flex flex-col items-center">
+            <div className="relative flex h-28 w-28 items-center justify-center rounded-2xl border-2 border-[#584568] bg-gradient-to-b from-[#2a1d38] to-[#150f1d] p-2 shadow-[0_0_20px_rgba(147,112,219,0.25)]">
+              <PixelHeroSprite size={90} />
+            </div>
+            <span className="mt-1.5 font-mono text-xs font-bold text-parchment">
+              Lvl. {level}
+            </span>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-moss shadow-[0_0_8px_#48bb78]" />
+              <h3 className="font-display text-base font-bold text-parchment uppercase tracking-wider">
+                {profile?.username ? profile.username.toUpperCase() : 'ASHEN HERO'}
+              </h3>
+            </div>
+            <p className="mt-1 text-xs text-muted max-w-md leading-relaxed">
+              Items purchased from the bazaar are instantly worn on your character sprite. Equip swords, horned helmets, buckler shields, pet companions, and armor!
+            </p>
+            <div className="mt-2.5 flex items-center gap-3 font-mono text-xs text-gold">
+              <span className="rounded bg-gold/10 px-2 py-0.5 border border-gold/20">
+                🛡️ {equippedCount} Wearables Equipped
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Category Filter Pills */}
       <div className="flex items-center gap-1.5 rounded-xl border border-[#2e261d] bg-[#100e0b] p-1.5 overflow-x-auto">
@@ -119,7 +155,7 @@ export function RewardsView() {
 
                 {/* Item Icon and Name */}
                 <div className="mt-3 flex items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#382d20] bg-[#0c0a08] text-2xl shadow-inner">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[#382d20] bg-[#0c0a08] text-3xl shadow-inner">
                     {item.icon}
                   </div>
                   <div>
@@ -139,10 +175,10 @@ export function RewardsView() {
 
               {/* Price & Action Button Row */}
               <div className="mt-4 pt-3 border-t border-[#262018] flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 rounded-lg bg-[#0c0a08] border border-[#2a221a] px-2.5 py-1">
                   <span className="text-sm">🪙</span>
                   <span className="font-mono text-sm font-bold text-gold">
-                    {isPurchased ? 'Owned' : `${item.price} Coins`}
+                    {isPurchased ? 'Owned' : `${item.price}`}
                   </span>
                 </div>
 
@@ -150,7 +186,7 @@ export function RewardsView() {
                   <button
                     type="button"
                     onClick={() => equipItem(item.id)}
-                    className={`rounded-xl px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider transition-all active:scale-95 ${
+                    className={`rounded-xl px-3.5 py-1.5 font-display text-xs font-bold uppercase tracking-wider transition-all active:scale-95 ${
                       isEquipped
                         ? 'border border-moss/50 bg-moss/20 text-moss shadow-[0_0_10px_rgba(72,187,120,0.2)]'
                         : 'border border-gold/40 bg-gold/15 text-gold hover:bg-gold/25'
