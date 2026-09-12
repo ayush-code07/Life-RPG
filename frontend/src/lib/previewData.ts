@@ -37,6 +37,7 @@ export const previewTasks: Task[] = [
     status: 'active',
     due_date: null,
     created_at: new Date().toISOString(),
+    tags: ['Work', 'Creativity'],
   },
   {
     task_id: 102,
@@ -48,6 +49,7 @@ export const previewTasks: Task[] = [
     status: 'active',
     due_date: null,
     created_at: new Date().toISOString(),
+    tags: ['Exercise', 'Health + Wellness'],
   },
   {
     task_id: 103,
@@ -59,5 +61,6 @@ export const previewTasks: Task[] = [
     status: 'pending',
     due_date: null,
     created_at: new Date().toISOString(),
+    tags: ['Health + Wellness'],
   },
 ]

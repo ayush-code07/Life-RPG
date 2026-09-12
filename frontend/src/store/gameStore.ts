@@ -131,7 +131,7 @@ interface GameState {
   completeQuest: (accessToken: string, taskId: number) => Promise<TaskCompletionResponse>
   addQuest: (
     accessToken: string,
-    input: { title: string; description?: string; difficulty: 1 | 2 | 3 | 4 | 5 }
+    input: { title: string; description?: string; difficulty: 1 | 2 | 3 | 4 | 5; tags?: string[] }
   ) => Promise<void>
   buyItem: (itemId: number) => boolean
   equipItem: (itemId: number) => void
@@ -187,6 +187,22 @@ const getStoredShopItems = (): ShopItem[] => {
   } catch {
     return INITIAL_SHOP_ITEMS
   }
+}
+
+function parseTaskTags(task: Task): Task {
+  if (task.tags && task.tags.length > 0) return task
+  if (task.description && task.description.startsWith('[TAGS:')) {
+    const match = task.description.match(/^\[TAGS:([^\]]+)\]\s*(.*)$/)
+    if (match) {
+      const tags = match[1].split(',').map((t) => t.trim()).filter(Boolean)
+      return {
+        ...task,
+        tags,
+        description: match[2] || null,
+      }
+    }
+  }
+  return task
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -344,7 +360,14 @@ export const useGameStore = create<GameState>((set, get) => ({
         rpgApi.getStreak(accessToken).catch(() => null),
         rpgApi.getInventory(accessToken).catch(() => [] as InventoryItem[]),
       ])
-      set({ profile, tasks, attributes, streakInfo, inventory, loading: false })
+      set({
+        profile,
+        tasks: tasks.map(parseTaskTags),
+        attributes,
+        streakInfo,
+        inventory,
+        loading: false,
+      })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to sync with the Life RPG API.'
       set({ error: message, loading: false })
@@ -466,17 +489,31 @@ export const useGameStore = create<GameState>((set, get) => ({
           status: 'active',
           due_date: null,
           created_at: new Date().toISOString(),
+          tags: input.tags ?? [],
         }
         set({ tasks: [created, ...get().tasks], syncing: false })
         return
       }
 
+      // Encode tags into description if present so it persists in backend
+      let finalDescription = input.description || ''
+      if (input.tags && input.tags.length > 0) {
+        const tagPrefix = `[TAGS:${input.tags.join(',')}]`
+        finalDescription = finalDescription ? `${tagPrefix} ${finalDescription}` : tagPrefix
+      }
+
       const created = await rpgApi.createTask(accessToken, {
-        ...input,
+        title: input.title,
+        description: finalDescription || undefined,
+        difficulty: input.difficulty,
         xp_reward: XP_BY_DIFFICULTY[input.difficulty],
         status: 'active',
       })
-      set({ tasks: [created, ...get().tasks], syncing: false })
+      const taskWithTags: Task = {
+        ...created,
+        tags: input.tags ?? [],
+      }
+      set({ tasks: [taskWithTags, ...get().tasks], syncing: false })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not create quest.'
       set({ error: message, syncing: false })

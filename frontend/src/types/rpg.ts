@@ -55,6 +55,7 @@ export interface Task {
   status: TaskStatus
   due_date: string | null
   created_at: string
+  tags?: string[]
   attribute_rewards?: TaskAttributeReward[]
 }
 

@@ -124,6 +124,33 @@ export function QuestItem({ quest, onComplete, disabled }: QuestItemProps) {
               {meta.bonus}
             </span>
           </div>
+
+          {/* Quest Tags */}
+          {quest.tags && quest.tags.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              {quest.tags.map((tag) => {
+                const tagMap: Record<string, { icon: string; style: string }> = {
+                  Work: { icon: '💼', style: 'border-blue-500/30 bg-blue-500/10 text-blue-300' },
+                  Exercise: { icon: '🏃', style: 'border-orange-500/30 bg-orange-500/10 text-orange-300' },
+                  'Health + Wellness': { icon: '🌿', style: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' },
+                  School: { icon: '📚', style: 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300' },
+                  Teams: { icon: '👥', style: 'border-purple-500/30 bg-purple-500/10 text-purple-300' },
+                  Chores: { icon: '🧹', style: 'border-amber-500/30 bg-amber-500/10 text-amber-300' },
+                  Creativity: { icon: '🎨', style: 'border-pink-500/30 bg-pink-500/10 text-pink-300' },
+                }
+                const m = tagMap[tag] ?? { icon: '🏷️', style: 'border-[#382d20] bg-[#1a1510] text-muted' }
+                return (
+                  <span
+                    key={tag}
+                    className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium ${m.style}`}
+                  >
+                    <span>{m.icon}</span>
+                    <span>{tag}</span>
+                  </span>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
 
