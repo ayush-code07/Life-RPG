@@ -13,6 +13,7 @@ import { ChroniclesView } from '../views/ChroniclesView'
 import { BossArenaView } from '../boss/BossArenaView'
 import { CelebrationModal } from '../ui/CelebrationModal'
 import { LootChestModal } from '../ui/LootChestModal'
+import { A11yAnnouncer } from '../ui/A11yAnnouncer'
 import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 import type { Task } from '../../types/rpg'
@@ -50,12 +51,25 @@ export function Dashboard() {
 
   return (
     <div className={`h-screen w-screen overflow-hidden text-parchment ${activeTheme} ${crtEnabled ? 'crt-overlay' : ''}`}>
+      {/* Screen Reader Live Region Announcer */}
+      <A11yAnnouncer />
+
+      {/* Accessible Skip to Content Link */}
+      <a href="#main-content" className="skip-link font-display text-xs">
+        Skip to main content
+      </a>
+
       <div className="flex flex-col lg:flex-row h-full w-full overflow-hidden">
-        {/* Left Sidebar */}
+        {/* Responsive Sidebar (Mobile drawer + bottom tab bar / Desktop fixed) */}
         <Sidebar />
 
-        {/* Main Content Area with independent scroll */}
-        <main id="main-content" tabIndex={-1} className="flex-1 h-full overflow-y-auto p-4 sm:p-6 lg:p-8">
+        {/* Main Content Area with responsive bottom padding for mobile tab bar */}
+        <main
+          id="main-content"
+          tabIndex={-1}
+          aria-label="Sanctuary Realm Content"
+          className="flex-1 h-full overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 focus:outline-hidden"
+        >
           <div className="max-w-7xl mx-auto w-full space-y-6">
             {/* Top Header */}
             <TopHeader />

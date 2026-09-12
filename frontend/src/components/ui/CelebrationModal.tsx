@@ -81,6 +81,17 @@ export function CelebrationModal() {
     }
   }, [celebration])
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && celebration) {
+        dismissCelebration()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [celebration, dismissCelebration])
+
   if (!celebration) return null
 
   const isLevelUp = celebration.type === 'LEVEL_UP'
@@ -94,6 +105,9 @@ export function CelebrationModal() {
 
         {/* Modal Window */}
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="celebration-heading"
           initial={{ opacity: 0, scale: 0.8, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.85, y: -20 }}
@@ -115,7 +129,7 @@ export function CelebrationModal() {
                   </span>
                   <span>✨</span>
                 </div>
-                <h3 className="font-display text-3xl sm:text-4xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-gold-bright to-amber-400 drop-shadow-[0_2px_10px_rgba(251,191,36,0.5)]">
+                <h3 id="celebration-heading" className="font-display text-3xl sm:text-4xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-gold-bright to-amber-400 drop-shadow-[0_2px_10px_rgba(251,191,36,0.5)]">
                   LEVEL UP!
                 </h3>
                 <p className="font-mono text-sm font-bold text-parchment">

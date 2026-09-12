@@ -51,6 +51,17 @@ export function LootChestModal({ loot, isOpen, onClose, onClaim }: LootChestModa
     }
   }, [isOpen])
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   if (!loot) return null
 
   const rarity = RARITY_COLORS[loot.rarity] || RARITY_COLORS.common
