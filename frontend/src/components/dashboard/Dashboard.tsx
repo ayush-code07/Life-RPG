@@ -11,6 +11,7 @@ import { RewardsView } from '../views/RewardsView'
 import { ArmoryView } from '../views/ArmoryView'
 import { ChroniclesView } from '../views/ChroniclesView'
 import { CelebrationModal } from '../ui/CelebrationModal'
+import { LootChestModal } from '../ui/LootChestModal'
 import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 import type { Task } from '../../types/rpg'
@@ -27,12 +28,15 @@ export function Dashboard() {
     loading,
     syncing,
     error,
+    lootDrop,
     hydrate,
     completeQuest,
     addQuest,
     updateQuest,
     deleteQuest,
     clearError,
+    dismissLootDrop,
+    claimLootDrop,
   } = useGameStore()
 
   const activeTheme = useGameStore((state) => state.profile?.active_theme) || 'theme-midnight-ember'
@@ -119,6 +123,14 @@ export function Dashboard() {
       {/* Global Celebratory Rewards & Level Up Overlay */}
       <CelebrationModal />
 
+      {/* Mystery RPG Loot Chest Overlay */}
+      <LootChestModal
+        loot={lootDrop}
+        isOpen={Boolean(lootDrop)}
+        onClose={dismissLootDrop}
+        onClaim={claimLootDrop}
+      />
+
       {/* Dialog Modal for Inscribing New Quests */}
       <CreateQuestModal
         isOpen={createQuestOpen}
@@ -142,3 +154,4 @@ export function Dashboard() {
     </div>
   )
 }
+

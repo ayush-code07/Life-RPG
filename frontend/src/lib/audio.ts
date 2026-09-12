@@ -199,6 +199,70 @@ class SoundEngine {
     });
   }
 
+  // Rare Loot Mystery Chest opening rumble & crystalline burst
+  playChestOpen(): void {
+    if (!this.enabled) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // Sub rumble
+    const rumble = ctx.createOscillator();
+    const rumbleGain = ctx.createGain();
+    rumble.type = 'sawtooth';
+    rumble.frequency.setValueAtTime(80, now);
+    rumble.frequency.exponentialRampToValueAtTime(30, now + 0.4);
+    rumbleGain.gain.setValueAtTime(0.25, now);
+    rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    rumble.connect(rumbleGain);
+    rumbleGain.connect(ctx.destination);
+    rumble.start(now);
+    rumble.stop(now + 0.4);
+
+    // Shimmering treasure chord (D minor 9th magical arpeggio)
+    const notes = [293.66, 349.23, 440.0, 523.25, 659.25, 880.0];
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + 0.15 + idx * 0.06);
+
+      gain.gain.setValueAtTime(0.18, now + 0.15 + idx * 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15 + idx * 0.06 + 0.5);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + 0.15 + idx * 0.06);
+      osc.stop(now + 0.15 + idx * 0.06 + 0.5);
+    });
+  }
+
+  // Achievement Unlock Fanfare
+  playAchievementUnlock(): void {
+    if (!this.enabled) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    // Golden triumphant fanfare
+    const notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51];
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+
+      gain.gain.setValueAtTime(0.22, now + idx * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.6);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + idx * 0.09);
+      osc.stop(now + idx * 0.09 + 0.6);
+    });
+  }
+
   // UI Click
   playClick(): void {
     if (!this.enabled) return;
@@ -219,6 +283,84 @@ class SoundEngine {
     gain.connect(ctx.destination);
     osc.start(now);
     osc.stop(now + 0.04);
+  }
+
+  // Procedural Dark Fantasy Ambient BGM
+  private bgmOscillators: OscillatorNode[] = [];
+  private bgmGain: GainNode | null = null;
+  public bgmPlaying: boolean = false;
+
+  toggleBGM(): boolean {
+    if (this.bgmPlaying) {
+      this.stopBGM();
+      return false;
+    } else {
+      this.startBGM();
+      return true;
+    }
+  }
+
+  startBGM(): void {
+    const ctx = this.getContext();
+    if (!ctx || this.bgmPlaying) return;
+
+    this.bgmPlaying = true;
+    const now = ctx.currentTime;
+
+    this.bgmGain = ctx.createGain();
+    this.bgmGain.gain.setValueAtTime(0.01, now);
+    this.bgmGain.gain.linearRampToValueAtTime(0.045, now + 2);
+    this.bgmGain.connect(ctx.destination);
+
+    // Ethereal minor chord drones: D2, A2, D3, F3, A3
+    const droneFreqs = [73.42, 110.0, 146.83, 174.61, 220.0];
+    this.bgmOscillators = droneFreqs.map((freq, idx) => {
+      const osc = ctx.createOscillator();
+      osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+
+      // Lowpass filter for smooth ambient warmth
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(320, now);
+
+      osc.connect(filter);
+      filter.connect(this.bgmGain!);
+      osc.start(now);
+      return osc;
+    });
+  }
+
+  stopBGM(): void {
+    if (!this.bgmPlaying) return;
+    const ctx = this.getContext();
+    if (ctx && this.bgmGain) {
+      const now = ctx.currentTime;
+      this.bgmGain.gain.linearRampToValueAtTime(0.001, now + 1);
+      setTimeout(() => {
+        this.bgmOscillators.forEach((osc) => {
+          try {
+            osc.stop();
+            osc.disconnect();
+          } catch {
+            // Ignored
+          }
+        });
+        this.bgmOscillators = [];
+        this.bgmPlaying = false;
+      }, 1000);
+    } else {
+      this.bgmOscillators.forEach((osc) => {
+        try {
+          osc.stop();
+          osc.disconnect();
+        } catch {
+          // Ignored
+        }
+      });
+      this.bgmOscillators = [];
+      this.bgmPlaying = false;
+    }
   }
 }
 

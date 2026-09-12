@@ -5,18 +5,36 @@ import { PixelHeroSprite } from '../character/PixelHeroSprite'
 
 type SubTab = 'profile' | 'feats' | 'codex' | 'settings'
 type SpritePose = 'idle' | 'attack' | 'cast' | 'cheer'
+type FeatCategory = 'all' | 'combat' | 'discipline' | 'mastery' | 'wealth'
 
 export function ChroniclesView() {
   const [subTab, setSubTab] = useState<SubTab>('profile')
   const [spritePose, setSpritePose] = useState<SpritePose>('idle')
-  const { profile, sfxEnabled, crtEnabled, toggleSfx, toggleCrt } = useGameStore()
+  const [featCategory, setFeatCategory] = useState<FeatCategory>('all')
+  const {
+    profile,
+    coins,
+    achievements,
+    sfxEnabled,
+    crtEnabled,
+    bgmPlaying,
+    toggleSfx,
+    toggleCrt,
+    toggleBgm,
+    claimAchievement,
+  } = useGameStore()
 
-  const level = profile?.current_level ?? 12
-  const currentXP = profile?.progress_xp ?? 320
-  const neededXP = profile?.xp_needed_for_next ?? 500
-  const progressPercent = Math.min(100, Math.max(0, Math.round((currentXP / neededXP) * 100)))
-  const streak = profile?.current_streak ?? 7
-  const gold = Math.max(120, (profile?.total_xp ?? 0) + 240)
+  const level = profile?.current_level ?? 1
+  const currentXP = profile?.progress_xp ?? 0
+  const neededXP = profile?.xp_needed_for_next ?? 100
+  const progressPercent = Math.min(100, Math.max(0, Math.round((currentXP / Math.max(1, neededXP)) * 100)))
+  const streak = profile?.current_streak ?? 0
+  const gold = coins
+
+  const unlockedCount = achievements.filter((a) => a.isUnlocked).length
+  const filteredAchievements = achievements.filter((a) =>
+    featCategory === 'all' ? true : a.category === featCategory
+  )
 
   const handlePoseChange = (pose: SpritePose) => {
     setSpritePose(pose)
@@ -40,17 +58,21 @@ export function ChroniclesView() {
             </span>
           </div>
           <p className="mt-1 text-xs text-muted">
-            Soul identity, feats of valor, sanctuary chronicles, acoustic synthesizer & realm controls.
+            Soul identity, hall of legends feats, sacred kiln codex & procedural acoustic synthesizer.
           </p>
         </div>
 
         <button
           type="button"
-          onClick={() => soundFx.playClick()}
-          className="flex items-center gap-2 rounded-xl border border-gold/30 bg-[#14100c] px-3.5 py-2 font-display text-xs font-bold tracking-wider text-gold hover:border-gold hover:bg-gold/10 transition-all shadow-[0_0_15px_rgba(226,179,104,0.1)]"
+          onClick={toggleBgm}
+          className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 font-display text-xs font-bold tracking-wider transition-all ${
+            bgmPlaying
+              ? 'border-gold bg-gold/20 text-gold shadow-[0_0_15px_rgba(226,179,104,0.3)] animate-pulse'
+              : 'border-[#2e261d] bg-[#14100c] text-muted hover:text-parchment hover:border-gold/40'
+          }`}
         >
-          <span>📜</span>
-          <span>TITLE GATEWAY</span>
+          <span>{bgmPlaying ? '🎵' : '🔇'}</span>
+          <span>{bgmPlaying ? 'AMBIENT SYNTH ON' : 'PLAY AMBIENT BGM'}</span>
         </button>
       </header>
 
@@ -85,7 +107,7 @@ export function ChroniclesView() {
           }`}
         >
           <span>🏆</span>
-          <span>FEATS (5)</span>
+          <span>FEATS ({unlockedCount}/{achievements.length})</span>
         </button>
 
         <button
@@ -100,8 +122,8 @@ export function ChroniclesView() {
               : 'text-muted hover:text-parchment hover:bg-[#181410]'
           }`}
         >
-          <span>❓</span>
-          <span>CODEX</span>
+          <span>📜</span>
+          <span>KILN CODEX</span>
         </button>
 
         <button
@@ -170,7 +192,7 @@ export function ChroniclesView() {
                       </span>
                     </div>
                     <p className="font-display text-xs tracking-widest text-muted uppercase mt-0.5">
-                      KEEPER OF THE SACRED KILN
+                      {profile?.active_badge || 'KEEPER OF THE SACRED KILN'}
                     </p>
                   </div>
                 </div>
@@ -212,9 +234,9 @@ export function ChroniclesView() {
 
                   <div className="rounded-xl border border-[#2e261d] bg-[#14110e] p-3">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-muted font-mono">
-                      🎒 EQUIPMENT
+                      🏆 FEATS
                     </p>
-                    <p className="mt-1 font-mono text-sm font-bold text-parchment">1 Relics</p>
+                    <p className="mt-1 font-mono text-sm font-bold text-parchment">{unlockedCount} / {achievements.length}</p>
                   </div>
                 </div>
               </div>
@@ -243,51 +265,146 @@ export function ChroniclesView() {
         </div>
       )}
 
-      {/* Feats View */}
+      {/* Hall of Legends / Feats View */}
       {subTab === 'feats' && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {[
-            { title: 'First Spark', desc: 'Inscribe your first quest on the notice board.', xp: '+50 XP', unlocked: true, icon: '🔥' },
-            { title: 'Keeper of Habit', desc: 'Maintain an unbroken streak for 7 consecutive days.', xp: '+150 XP', unlocked: streak >= 7, icon: '⚡' },
-            { title: 'Behemoth Striker', desc: 'Deal fatal damage to a World Boss during a trial.', xp: '+250 XP', unlocked: true, icon: '💀' },
-            { title: 'Pyromancer Ascendant', desc: 'Achieve Level 15 in the Sacred Kiln.', xp: '+500 XP', unlocked: level >= 15, icon: '👑' },
-            { title: 'Relic Collector', desc: 'Equip an Epic or Legendary item in your Armory.', xp: '+200 XP', unlocked: true, icon: '🎒' },
-          ].map((feat) => (
-            <div
-              key={feat.title}
-              className={`flex items-center gap-4 rounded-xl border p-4 ${
-                feat.unlocked
-                  ? 'border-gold/30 bg-[#14110e] shadow-[0_0_15px_rgba(226,179,104,0.06)]'
-                  : 'border-[#262018] bg-[#0d0b09] opacity-40'
-              }`}
-            >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/30 bg-[#100d0a] text-2xl">
-                {feat.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-display text-sm font-bold text-parchment">{feat.title}</h4>
-                  <span className="font-mono text-xs font-bold text-gold">{feat.xp}</span>
+        <div className="space-y-4">
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            {[
+              { id: 'all', label: 'ALL FEATS' },
+              { id: 'combat', label: '⚔️ COMBAT' },
+              { id: 'discipline', label: '⚡ DISCIPLINE' },
+              { id: 'mastery', label: '🧠 MASTERY' },
+              { id: 'wealth', label: '🪙 WEALTH' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => {
+                  soundFx.playClick()
+                  setFeatCategory(cat.id as FeatCategory)
+                }}
+                className={`rounded-xl px-3 py-1.5 font-mono text-xs font-bold uppercase transition-all ${
+                  featCategory === cat.id
+                    ? 'border border-gold/50 bg-gold/15 text-gold shadow-[0_0_10px_rgba(226,179,104,0.2)]'
+                    : 'border border-[#262018] bg-[#120f0c] text-muted hover:text-parchment'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {filteredAchievements.map((feat) => {
+              const progressPct = Math.min(100, Math.round((feat.progress / Math.max(1, feat.maxProgress)) * 100))
+              const isComplete = feat.isUnlocked
+
+              return (
+                <div
+                  key={feat.id}
+                  className={`flex flex-col justify-between rounded-2xl border p-4 transition-all duration-300 ${
+                    isComplete
+                      ? 'border-gold/40 bg-gradient-to-br from-[#1c1610] to-[#120e0a] shadow-[0_0_20px_rgba(226,179,104,0.1)]'
+                      : 'border-[#262018] bg-[#0e0b08] opacity-75'
+                  }`}
+                >
+                  <div className="flex items-start gap-3.5">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/30 bg-[#14100c] text-2xl shadow-inner">
+                      {feat.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-display text-sm font-bold text-parchment truncate">{feat.title}</h4>
+                        <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-gold shrink-0">
+                          <span>+{feat.rewardXP} XP</span>
+                          <span>•</span>
+                          <span>+{feat.rewardCoins} 🪙</span>
+                        </div>
+                      </div>
+                      <p className="mt-1 text-xs text-muted leading-relaxed">{feat.description}</p>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar & Status Action */}
+                  <div className="mt-3.5 pt-3 border-t border-[#221b14] space-y-2">
+                    <div className="flex items-center justify-between font-mono text-[11px]">
+                      <span className="text-muted">Progress</span>
+                      <span className={isComplete ? 'font-bold text-gold' : 'text-parchment'}>
+                        {feat.progress} / {feat.maxProgress} ({progressPct}%)
+                      </span>
+                    </div>
+
+                    <div className="h-2 w-full overflow-hidden rounded-full border border-[#2e261d] bg-[#0c0a08] p-0.5">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          isComplete
+                            ? 'bg-gradient-to-r from-gold to-gold-bright shadow-[0_0_8px_rgba(226,179,104,0.6)]'
+                            : 'bg-gradient-to-r from-[#5a3a1d] to-[#996515]'
+                        }`}
+                        style={{ width: `${progressPct}%` }}
+                      />
+                    </div>
+
+                    {isComplete && (
+                      <div className="pt-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => claimAchievement(feat.id)}
+                          className="rounded-lg border border-gold/50 bg-gold/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-gold hover:bg-gold hover:text-black transition-all shadow-[0_0_10px_rgba(226,179,104,0.15)]"
+                        >
+                          ✨ REWARD CLAIMED ✨
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-muted">{feat.desc}</p>
-              </div>
-            </div>
-          ))}
+              )
+            })}
+          </div>
         </div>
       )}
 
       {/* Codex View */}
       {subTab === 'codex' && (
-        <div className="rounded-2xl border border-[#382d20] bg-[#14110e] p-6 space-y-4">
-          <h3 className="font-display text-lg font-bold text-parchment">ANCIENT KILN CODEX</h3>
-          <p className="text-xs text-muted leading-relaxed">
-            The Ashen Path is a philosophy of disciplined rebirth. Every completed quest kindles the flame of your soul, chipping away at cognitive lethargy (represented by the Corrupted Behemoth).
-          </p>
-          <div className="rounded-xl border border-gold/20 bg-[#0d0b09] p-4 text-xs space-y-2">
-            <p className="text-gold font-bold">⚔️ Progression Axioms:</p>
-            <p className="text-muted">• Tasks award XP based on difficulty tier (Tier 1: 25 XP → Tier 5: 250 XP).</p>
-            <p className="text-muted">• Daily streaks enhance XP multipliers and prevent boss regeneration.</p>
-            <p className="text-muted">• Rest at the bonfire to commit progress and temper cognitive stamina.</p>
+        <div className="rounded-2xl border border-[#382d20] bg-[#14110e] p-6 space-y-5">
+          <div>
+            <h3 className="font-display text-xl font-black text-parchment">ANCIENT KILN CODEX</h3>
+            <p className="text-xs text-muted leading-relaxed mt-1">
+              The Ashen Path is a philosophy of disciplined rebirth. Every completed real-world quest kindles the flame of your soul, chipping away at cognitive lethargy.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-gold/20 bg-[#0d0b09] p-4 text-xs space-y-2">
+              <p className="text-gold font-bold">🔥 Bonfire Flame Evolution Tiers:</p>
+              <p className="text-muted">• <strong className="text-parchment">Novice Ember</strong> (0-2d streak): 1.0x Base XP</p>
+              <p className="text-muted">• <strong className="text-amber-400">Kindled Blaze</strong> (3-6d streak): 1.1x XP (+10% Bonus)</p>
+              <p className="text-muted">• <strong className="text-cyan-400">Astral Blue Flame</strong> (7-13d streak): 1.25x XP (+25% Bonus)</p>
+              <p className="text-muted">• <strong className="text-yellow-300">Solar Ascendant</strong> (14d+ streak): 1.5x XP (+50% Bonus)</p>
+            </div>
+
+            <div className="rounded-xl border border-gold/20 bg-[#0d0b09] p-4 text-xs space-y-2">
+              <p className="text-gold font-bold">🎁 Mystery RPG Loot Drops:</p>
+              <p className="text-muted">• Quests drop unsealable chests with rarity tiers (Common to Legendary).</p>
+              <p className="text-muted">• Higher difficulty tiers increase drop rate (up to 90% chance at Tier 5).</p>
+              <p className="text-muted">• Unseal chests for bonus Gold Coins, Character XP, and Attribute Potions.</p>
+            </div>
+
+            <div className="rounded-xl border border-gold/20 bg-[#0d0b09] p-4 text-xs space-y-2">
+              <p className="text-gold font-bold">⚔️ Stat Attribute Mapping:</p>
+              <p className="text-muted">• <strong>Coding/Study</strong> increases <strong className="text-cyan-400">Intellect</strong></p>
+              <p className="text-muted">• <strong>Gym/Workouts</strong> increases <strong className="text-red-400">Strength</strong></p>
+              <p className="text-muted">• <strong>Sleep/Health/Meals</strong> increases <strong className="text-emerald-400">Vitality</strong></p>
+              <p className="text-muted">• <strong>Morning Routine/Habits</strong> increases <strong className="text-amber-400">Focus & Discipline</strong></p>
+            </div>
+
+            <div className="rounded-xl border border-gold/20 bg-[#0d0b09] p-4 text-xs space-y-2">
+              <p className="text-gold font-bold">🛍️ Royal Armory & Bazaar:</p>
+              <p className="text-muted">• Earn gold coins from quests (+1 per task, +10 on level up, mystery drops).</p>
+              <p className="text-muted">• Purchase weapons, armor, badges, and dynamic environmental shaders.</p>
+              <p className="text-muted">• All purchases and equips persist across sessions and database profiles.</p>
+            </div>
           </div>
         </div>
       )}
@@ -296,26 +413,37 @@ export function ChroniclesView() {
       {subTab === 'settings' && (
         <div className="rounded-2xl border border-[#382d20] bg-[#14110e] p-6 space-y-4">
           <h3 className="font-display text-lg font-bold text-parchment">REALM & ACOUSTIC SETTINGS</h3>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-3">
             <button
               type="button"
               onClick={toggleSfx}
-              className={`flex items-center justify-between rounded-xl border p-4 font-mono text-xs font-bold ${
+              className={`flex items-center justify-between rounded-xl border p-4 font-mono text-xs font-bold transition-all ${
                 sfxEnabled ? 'border-gold/40 bg-gold/10 text-gold' : 'border-[#262018] bg-[#0d0b09] text-muted'
               }`}
             >
-              <span>🔊 Web Audio Synthesizer</span>
+              <span>🔊 Procedural Sound FX</span>
               <span>{sfxEnabled ? 'ENABLED' : 'DISABLED'}</span>
             </button>
 
             <button
               type="button"
+              onClick={toggleBgm}
+              className={`flex items-center justify-between rounded-xl border p-4 font-mono text-xs font-bold transition-all ${
+                bgmPlaying ? 'border-gold/40 bg-gold/15 text-gold shadow-[0_0_15px_rgba(226,179,104,0.2)]' : 'border-[#262018] bg-[#0d0b09] text-muted'
+              }`}
+            >
+              <span>🎵 Dark Fantasy Ambient BGM</span>
+              <span>{bgmPlaying ? 'PLAYING' : 'MUTED'}</span>
+            </button>
+
+            <button
+              type="button"
               onClick={toggleCrt}
-              className={`flex items-center justify-between rounded-xl border p-4 font-mono text-xs font-bold ${
+              className={`flex items-center justify-between rounded-xl border p-4 font-mono text-xs font-bold transition-all ${
                 crtEnabled ? 'border-gold/40 bg-gold/10 text-gold' : 'border-[#262018] bg-[#0d0b09] text-muted'
               }`}
             >
-              <span>📺 Scanline CRT Filter</span>
+              <span>📺 Scanline CRT Shader</span>
               <span>{crtEnabled ? 'ENABLED' : 'DISABLED'}</span>
             </button>
           </div>

@@ -5,6 +5,8 @@ import { categorizeTaskAttributes } from '../lib/attributeMapping'
 import { soundFx } from '../lib/audio'
 import { PREVIEW_TOKEN, previewAttributes, previewProfile, previewTasks } from '../lib/previewData'
 import { useAuthStore } from './authStore'
+import { rollForLootDrop, type LootReward } from '../lib/lootDrops'
+import { INITIAL_ACHIEVEMENTS, type Achievement } from '../lib/achievements'
 import type {
   ActiveTab,
   InventoryItem,
@@ -349,6 +351,9 @@ interface GameState {
   error: string | null
   lastCompletion: TaskCompletionResponse | null
   celebration: CelebrationState | null
+  lootDrop: LootReward | null
+  achievements: Achievement[]
+  bgmPlaying: boolean
 
   // Actions
   hydrate: (accessToken: string) => Promise<void>
@@ -368,9 +373,13 @@ interface GameState {
   setActiveTab: (tab: ActiveTab) => void
   toggleSfx: () => void
   toggleCrt: () => void
+  toggleBgm: () => void
   restAtBonfire: () => void
   dismissCelebration: () => void
   triggerCelebration: (data: CelebrationState) => void
+  dismissLootDrop: () => void
+  claimLootDrop: (loot: LootReward) => void
+  claimAchievement: (achievementId: string) => void
   clearError: () => void
   reset: () => void
 }
@@ -412,6 +421,29 @@ const getStoredCoins = (userId?: string): number => {
   return val !== null ? parseInt(val, 10) : 25
 }
 
+const getStoredAchievements = (userId?: string): Achievement[] => {
+  if (typeof window === 'undefined') return INITIAL_ACHIEVEMENTS
+  try {
+    const key = userId ? `ashen_feats_${userId}` : 'ashen_feats_v2'
+    const val = localStorage.getItem(key)
+    if (!val) return INITIAL_ACHIEVEMENTS
+    const stored: Achievement[] = JSON.parse(val)
+    return INITIAL_ACHIEVEMENTS.map((item) => {
+      const match = stored.find((s) => s.id === item.id)
+      return match
+        ? {
+            ...item,
+            progress: match.progress ?? item.progress,
+            isUnlocked: match.isUnlocked ?? item.isUnlocked,
+            unlockedAt: match.unlockedAt ?? item.unlockedAt,
+          }
+        : item
+    })
+  } catch {
+    return INITIAL_ACHIEVEMENTS
+  }
+}
+
 const getStoredShopItems = (userId?: string): ShopItem[] => {
   if (typeof window === 'undefined') return INITIAL_SHOP_ITEMS
   try {
@@ -450,6 +482,74 @@ function parseTaskTags(task: Task): Task {
   return task
 }
 
+function checkAchievementsProgress(
+  currentList: Achievement[],
+  stats: {
+    tasksCompletedDelta?: number
+    categoryTrial?: string
+    currentStreak?: number
+    currentLevel?: number
+    coins?: number
+    boughtItem?: boolean
+    equippedShader?: boolean
+  },
+  userId?: string
+): Achievement[] {
+  let changed = false
+  const updated = currentList.map((ach) => {
+    let newProgress = ach.progress
+    let unlocked = ach.isUnlocked
+
+    if (ach.id === 'first_blood' || ach.id === 'novice_striker' || ach.id === 'veteran_slayer') {
+      if (stats.tasksCompletedDelta) {
+        newProgress = Math.min(ach.maxProgress, newProgress + stats.tasksCompletedDelta)
+      }
+    } else if (ach.id === 'coder_archmage' && stats.categoryTrial === 'Intellect') {
+      newProgress = Math.min(ach.maxProgress, newProgress + 1)
+    } else if (ach.id === 'iron_temple' && stats.categoryTrial === 'Strength') {
+      newProgress = Math.min(ach.maxProgress, newProgress + 1)
+    } else if (ach.id === 'vitality_monk' && stats.categoryTrial === 'Vitality') {
+      newProgress = Math.min(ach.maxProgress, newProgress + 1)
+    } else if (ach.id === 'kindled_streak' && stats.currentStreak !== undefined) {
+      newProgress = Math.min(ach.maxProgress, stats.currentStreak)
+    } else if (ach.id === 'unbroken_will' && stats.currentStreak !== undefined) {
+      newProgress = Math.min(ach.maxProgress, stats.currentStreak)
+    } else if (ach.id === 'sovereign_level' && stats.currentLevel !== undefined) {
+      newProgress = Math.min(ach.maxProgress, stats.currentLevel)
+    } else if (ach.id === 'patron_bazaar' && stats.boughtItem) {
+      newProgress = 1
+    } else if (ach.id === 'dragon_treasury' && stats.coins !== undefined) {
+      newProgress = Math.min(ach.maxProgress, stats.coins)
+    } else if (ach.id === 'master_shaders' && stats.equippedShader) {
+      newProgress = 1
+    }
+
+    if (newProgress >= ach.maxProgress && !unlocked) {
+      unlocked = true
+      changed = true
+      soundFx.playAchievementUnlock()
+      return {
+        ...ach,
+        progress: newProgress,
+        isUnlocked: true,
+        unlockedAt: new Date().toISOString(),
+      }
+    }
+
+    if (newProgress !== ach.progress) {
+      changed = true
+      return { ...ach, progress: newProgress }
+    }
+    return ach
+  })
+
+  if (changed && typeof window !== 'undefined') {
+    const featsKey = userId ? `ashen_feats_${userId}` : 'ashen_feats_v2'
+    localStorage.setItem(featsKey, JSON.stringify(updated))
+  }
+  return updated
+}
+
 export const useGameStore = create<GameState>((set, get) => ({
   profile: null,
   attributes: [],
@@ -457,6 +557,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   inventory: [],
   shopItems: getStoredShopItems(),
   coins: getStoredCoins(),
+  achievements: getStoredAchievements(),
+  lootDrop: null,
+  bgmPlaying: false,
   streakInfo: null,
   activeTab: 'sanctuary',
   sfxEnabled: true,
@@ -488,6 +591,119 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ celebration: data })
   },
 
+  dismissLootDrop: () => {
+    soundFx.playClick()
+    set({ lootDrop: null })
+  },
+
+  claimLootDrop: (loot: LootReward) => {
+    const currentCoins = get().coins
+    const addedCoins = loot.rewardCoins || 0
+    const addedXP = loot.rewardXP || 0
+    const newCoins = currentCoins + addedCoins
+
+    const currentProfile = get().profile
+    let updatedProfile = currentProfile
+    if (currentProfile && addedXP > 0) {
+      const gained = applyXPGain(currentProfile.current_level, currentProfile.total_xp, addedXP)
+      updatedProfile = {
+        ...currentProfile,
+        current_level: gained.newLevel,
+        total_xp: gained.newTotalXP,
+        progress_xp: gained.progressXP,
+        xp_needed_for_next: gained.xpNeededForNext,
+        coins: newCoins,
+      }
+    } else if (currentProfile) {
+      updatedProfile = { ...currentProfile, coins: newCoins }
+    }
+
+    let updatedAttributes = get().attributes
+    if (loot.rewardAttribute) {
+      const attrName = loot.rewardAttribute.name.toLowerCase()
+      const attrXP = loot.rewardAttribute.xp
+      updatedAttributes = updatedAttributes.map((attr) => {
+        if ((attr.attribute_name ?? '').toLowerCase() === attrName) {
+          const gained = applyAttributeXPGain(attr.attribute_value, Number(attr.attribute_xp), attrXP)
+          return {
+            ...attr,
+            attribute_value: gained.newValue,
+            attribute_xp: gained.newXP,
+          }
+        }
+        return attr
+      })
+    }
+
+    const userId = get().profile?.id
+    if (typeof window !== 'undefined') {
+      const coinKey = userId ? `ashen_coins_${userId}` : 'ashen_coins'
+      localStorage.setItem(coinKey, String(newCoins))
+    }
+
+    const token = useAuthStore.getState().accessToken
+    if (token && token !== PREVIEW_TOKEN) {
+      rpgApi.updateProfile(token, { coins: newCoins }).catch(() => {})
+    }
+
+    const updatedAchievements = checkAchievementsProgress(
+      get().achievements,
+      { coins: newCoins },
+      userId
+    )
+
+    set({
+      coins: newCoins,
+      profile: updatedProfile,
+      attributes: updatedAttributes,
+      achievements: updatedAchievements,
+      lootDrop: null,
+    })
+  },
+
+  claimAchievement: (achievementId: string) => {
+    const currentAchievements = get().achievements
+    const target = currentAchievements.find((a) => a.id === achievementId)
+    if (!target || !target.isUnlocked) return
+
+    soundFx.playAchievementUnlock()
+    const addedCoins = target.rewardCoins
+    const addedXP = target.rewardXP
+    const newCoins = get().coins + addedCoins
+
+    const currentProfile = get().profile
+    let updatedProfile = currentProfile
+    if (currentProfile && addedXP > 0) {
+      const gained = applyXPGain(currentProfile.current_level, currentProfile.total_xp, addedXP)
+      updatedProfile = {
+        ...currentProfile,
+        current_level: gained.newLevel,
+        total_xp: gained.newTotalXP,
+        progress_xp: gained.progressXP,
+        xp_needed_for_next: gained.xpNeededForNext,
+        coins: newCoins,
+      }
+    }
+
+    const updatedAchievements = currentAchievements.map((a) =>
+      a.id === achievementId ? { ...a, progress: a.maxProgress } : a
+    )
+
+    const userId = get().profile?.id
+    if (typeof window !== 'undefined') {
+      const coinKey = userId ? `ashen_coins_${userId}` : 'ashen_coins'
+      const featsKey = userId ? `ashen_feats_${userId}` : 'ashen_feats_v2'
+      localStorage.setItem(coinKey, String(newCoins))
+      localStorage.setItem(featsKey, JSON.stringify(updatedAchievements))
+    }
+
+    set({
+      coins: newCoins,
+      profile: updatedProfile,
+      achievements: updatedAchievements,
+    })
+  },
+
   toggleSfx: () => {
     const next = !get().sfxEnabled
     soundFx.enabled = next
@@ -498,6 +714,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   toggleCrt: () => {
     soundFx.playClick()
     set((s) => ({ crtEnabled: !s.crtEnabled }))
+  },
+
+  toggleBgm: () => {
+    const playing = soundFx.toggleBGM()
+    set({ bgmPlaying: playing })
   },
 
   restAtBonfire: () => {
@@ -574,10 +795,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       }).catch(() => { })
     }
 
+    const updatedAchievements = checkAchievementsProgress(
+      get().achievements,
+      { boughtItem: true, coins: newCoins },
+      userId
+    )
+
     set({
       coins: newCoins,
       shopItems: updatedShop,
       inventory: [newInvItem, ...get().inventory],
+      achievements: updatedAchievements,
       profile: get().profile ? {
         ...get().profile!,
         coins: newCoins,
@@ -658,9 +886,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       }).catch(() => { })
     }
 
+    const updatedAchievements = checkAchievementsProgress(
+      get().achievements,
+      { equippedShader: nextEquipped && (target.type === 'theme' || target.type === 'badge') },
+      userId
+    )
+
     set({
       shopItems: updatedShop,
       inventory: updatedInv,
+      achievements: updatedAchievements,
       profile: get().profile ? {
         ...get().profile!,
         active_theme: activeTheme,
@@ -799,13 +1034,22 @@ export const useGameStore = create<GameState>((set, get) => ({
         return attr
       })
 
+      // Determine flame evolution streak multiplier (Novice: 1.0x, Kindled: 1.1x, Astral: 1.25x, Solar: 1.5x)
+      const currentStreak = get().profile?.current_streak ?? 0
+      const streakMultiplier = currentStreak >= 14 ? 1.5 : currentStreak >= 7 ? 1.25 : currentStreak >= 3 ? 1.1 : 1.0
+      const effectiveXp = Math.round(target.xp_reward * streakMultiplier)
+      const droppedLoot = rollForLootDrop(target.difficulty)
+      const mainAttr = attrBonuses.length > 0 ? attrBonuses[0].attributeName : ''
+
       if (accessToken === PREVIEW_TOKEN) {
         const current = get().profile ?? previewProfile
-        const gained = applyXPGain(current.current_level, current.total_xp, target.xp_reward)
+        const gained = applyXPGain(current.current_level, current.total_xp, effectiveXp)
 
         // Coins economy: +1 coin per task + 10 coins per level up
         const earnedCoins = 1 + (gained.levelsGained * 10)
         const updatedCoins = get().coins + earnedCoins
+        const nextStreak = current.current_streak + 1
+
         if (typeof window !== 'undefined') {
           localStorage.setItem('ashen_coins', String(updatedCoins))
         }
@@ -815,11 +1059,25 @@ export const useGameStore = create<GameState>((set, get) => ({
           setTimeout(() => soundFx.playLevelUp(), 400)
         }
 
+        const updatedAchievements = checkAchievementsProgress(
+          get().achievements,
+          {
+            tasksCompletedDelta: 1,
+            categoryTrial: mainAttr,
+            currentStreak: nextStreak,
+            currentLevel: gained.newLevel,
+            coins: updatedCoins,
+          },
+          'preview'
+        )
+
         const result: TaskCompletionResponse = {
           message: gained.levelsGained > 0
             ? `🎉 Level Up! (+${gained.levelsGained * 10} Coins)`
-            : 'Quest complete. (+1 Coin)',
-          task: { task_id: target.task_id, title: target.title, xp_awarded: target.xp_reward },
+            : streakMultiplier > 1.0
+              ? `Quest complete. +${effectiveXp} XP (${streakMultiplier}x Flame Streak Bonus!)`
+              : 'Quest complete. (+1 Coin)',
+          task: { task_id: target.task_id, title: target.title, xp_awarded: effectiveXp },
           profile: {
             id: current.id,
             current_level: gained.newLevel,
@@ -827,14 +1085,17 @@ export const useGameStore = create<GameState>((set, get) => ({
             levels_gained: gained.levelsGained,
             progress_xp: gained.progressXP,
             xp_needed_for_next: gained.xpNeededForNext,
-            current_streak: current.current_streak + 1,
-            longest_streak: Math.max(current.longest_streak, current.current_streak + 1),
+            current_streak: nextStreak,
+            longest_streak: Math.max(current.longest_streak, nextStreak),
             last_activity_date: new Date().toISOString().slice(0, 10),
           },
         }
+
         set({
           coins: updatedCoins,
           attributes: updatedAttributes,
+          achievements: updatedAchievements,
+          lootDrop: droppedLoot,
           lastCompletion: result,
           celebration: gained.levelsGained > 0 ? {
             type: 'LEVEL_UP',
@@ -853,8 +1114,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       const levelsGained = result.profile.levels_gained || 0
       const earnedCoins = 1 + (levelsGained * 10)
       const updatedCoins = get().coins + earnedCoins
+      const userId = get().profile?.id
+
       if (typeof window !== 'undefined') {
-        localStorage.setItem('ashen_coins', String(updatedCoins))
+        const coinKey = userId ? `ashen_coins_${userId}` : 'ashen_coins'
+        localStorage.setItem(coinKey, String(updatedCoins))
       }
 
       soundFx.playCoinSound()
@@ -873,9 +1137,23 @@ export const useGameStore = create<GameState>((set, get) => ({
           })
         : updatedAttributes
 
+      const updatedAchievements = checkAchievementsProgress(
+        get().achievements,
+        {
+          tasksCompletedDelta: 1,
+          categoryTrial: mainAttr,
+          currentStreak: result.profile.current_streak,
+          currentLevel: result.profile.current_level,
+          coins: updatedCoins,
+        },
+        userId
+      )
+
       set({
         coins: updatedCoins,
         attributes: finalAttributes,
+        achievements: updatedAchievements,
+        lootDrop: droppedLoot,
         lastCompletion: result,
         celebration: levelsGained > 0 ? {
           type: 'LEVEL_UP',
@@ -1014,6 +1292,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       inventory: [],
       shopItems: INITIAL_SHOP_ITEMS,
       coins: 25,
+      achievements: INITIAL_ACHIEVEMENTS,
+      lootDrop: null,
+      bgmPlaying: false,
       streakInfo: null,
       boss: INITIAL_BOSS,
       loading: false,
