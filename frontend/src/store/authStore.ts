@@ -13,6 +13,7 @@ interface AuthState {
   initialize: () => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, username: string) => Promise<void>
+  resetPassword: (email: string) => Promise<{ success: boolean; message?: string }>
   enterPreview: () => void
   signOut: () => Promise<void>
   clearError: () => void
@@ -88,6 +89,23 @@ export const useAuthStore = create<AuthState>((set) => ({
       },
     })
     if (error) set({ authError: error.message })
+  },
+
+  resetPassword: async (email: string) => {
+    if (!supabase) {
+      set({ authError: 'Supabase is not configured.' })
+      return { success: false, message: 'Supabase is not configured.' }
+    }
+
+    set({ authError: null })
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}` : undefined,
+    })
+    if (error) {
+      set({ authError: error.message })
+      return { success: false, message: error.message }
+    }
+    return { success: true }
   },
 
   enterPreview: () => {

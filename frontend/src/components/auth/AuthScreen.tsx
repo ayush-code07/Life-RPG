@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { isSupabaseConfigured, useAuthStore } from '../../store/authStore'
 
-type AuthMode = 'signin' | 'signup'
+type AuthMode = 'signin' | 'signup' | 'forgot'
 
 interface AuthScreenProps {
   initialMode?: AuthMode
@@ -11,7 +11,7 @@ interface AuthScreenProps {
 
 export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) {
   const reduceMotion = useReducedMotion()
-  const { signIn, signUp, authError, clearError } = useAuthStore()
+  const { signIn, signUp, resetPassword, authError, clearError } = useAuthStore()
   const [mode, setMode] = useState<AuthMode>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -19,8 +19,19 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
   const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
 
-  const heading = mode === 'signin' ? 'Enter the guild' : 'Create your hero'
-  const actionLabel = mode === 'signin' ? 'Sign in' : 'Create account'
+  const heading =
+    mode === 'signin'
+      ? 'Enter the guild'
+      : mode === 'signup'
+      ? 'Create your hero'
+      : 'Reset your password'
+
+  const actionLabel =
+    mode === 'signin'
+      ? 'Sign in'
+      : mode === 'signup'
+      ? 'Create account'
+      : 'Send reset link'
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -31,9 +42,14 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
     try {
       if (mode === 'signin') {
         await signIn(email, password)
-      } else {
+      } else if (mode === 'signup') {
         await signUp(email, password, username)
         setNotice('Account created. If email confirmation is enabled, check your inbox, then sign in.')
+      } else {
+        const res = await resetPassword(email)
+        if (res.success) {
+          setNotice('Password reset link sent to your email. Check your inbox and follow the link to reset.')
+        }
       }
     } finally {
       setSubmitting(false)
@@ -79,7 +95,9 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
           {heading}
         </h1>
         <p className="mt-2 text-xs text-muted">
-          Inscribe your soul with Supabase Auth to begin your journey through the Ashen Wastes.
+          {mode === 'forgot'
+            ? 'Enter your registered email address and we will dispatch a password recovery seal.'
+            : 'Inscribe your soul with Supabase Auth to begin your journey through the Ashen Wastes.'}
         </p>
 
         {!isSupabaseConfigured && (
@@ -110,16 +128,35 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
             onChange={setEmail}
             required
           />
-          <Field
-            id="password"
-            label="Password"
-            type="password"
-            autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-            value={password}
-            onChange={setPassword}
-            minLength={6}
-            required
-          />
+          {mode !== 'forgot' && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-parchment">
+                  Password
+                </label>
+                {mode === 'signin' && (
+                  <button
+                    type="button"
+                    onClick={() => switchMode('forgot')}
+                    className="font-mono text-xs font-semibold text-gold hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                minLength={6}
+                required
+                className="w-full rounded-xl border border-gold/20 bg-ink px-3 py-2.5 text-parchment placeholder:text-muted/60"
+              />
+            </div>
+          )}
 
           <div id="auth-status" aria-live="polite" className="min-h-[1.5rem] text-sm">
             {authError && <p className="text-ember">{authError}</p>}
@@ -129,7 +166,13 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
           <button
             type="submit"
             disabled={submitting || !isSupabaseConfigured}
-            aria-label={mode === 'signin' ? 'Sign in to Life RPG' : 'Create Life RPG account'}
+            aria-label={
+              mode === 'signin'
+                ? 'Sign in to Life RPG'
+                : mode === 'signup'
+                ? 'Create Life RPG account'
+                : 'Send password recovery link'
+            }
             className="w-full rounded-xl bg-gold px-4 py-3 text-sm font-bold text-ink transition enabled:hover:bg-gold-deep disabled:cursor-not-allowed disabled:opacity-60 shadow-[0_0_20px_rgba(226,179,104,0.25)]"
           >
             {submitting ? 'Binding the seal…' : actionLabel}
@@ -137,17 +180,36 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
         </form>
 
         <div className="mt-6 flex items-center justify-between gap-3 text-sm">
-          <span className="text-muted">
-            {mode === 'signin' ? 'New adventurer?' : 'Already sworn in?'}
-          </span>
-          <button
-            type="button"
-            className="font-semibold text-gold underline-offset-4 hover:underline"
-            onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
-            aria-label={mode === 'signin' ? 'Switch to create account' : 'Switch to sign in'}
-          >
-            {mode === 'signin' ? 'Create account' : 'Sign in'}
-          </button>
+          {mode === 'forgot' ? (
+            <button
+              type="button"
+              className="font-semibold text-gold underline-offset-4 hover:underline mx-auto"
+              onClick={() => switchMode('signin')}
+            >
+              ← Back to Sign in
+            </button>
+          ) : (
+            <>
+              <span className="text-muted">
+                {mode === 'signin' ? 'New adventurer?' : 'Already sworn in?'}
+              </span>
+              <button
+                type="button"
+                className="font-semibold text-gold underline-offset-4 hover:underline"
+                onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
+                aria-label={mode === 'signin' ? 'Switch to create account' : 'Switch to sign in'}
+              >
+                {mode === 'signin' ? 'Create account' : 'Sign in'}
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Creator Attribution */}
+        <div className="mt-8 pt-4 border-t border-[#262018] text-center">
+          <p className="font-mono text-xs text-muted">
+            Ayush Jagnani • Made with coffee and love ☕❤️
+          </p>
         </div>
       </motion.section>
 

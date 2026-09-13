@@ -277,14 +277,19 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#262018] bg-[#070605] py-8 text-center text-xs text-muted font-mono">
-        <div className="flex items-center justify-center gap-2 mb-2">
+      <footer className="border-t border-[#262018] bg-[#070605] py-8 text-center text-xs text-muted font-mono space-y-1.5">
+        <div className="flex items-center justify-center gap-2">
           <span>🔥</span>
           <span className="text-parchment font-bold">ASHEN PATH</span>
           <span>•</span>
           <span>CHRONICLES OF ASH</span>
         </div>
-        <p>© 2026 Life RPG. Turn your commitments into legendary conquests.</p>
+        <p className="text-parchment/90 font-medium">
+          Ayush Jagnani • Made with coffee and love ☕❤️
+        </p>
+        <p className="text-[10px] text-muted/70">
+          © 2026 Ashen Path. Turn your commitments into legendary conquests.
+        </p>
       </footer>
     </div>
   )
