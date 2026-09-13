@@ -11,10 +11,12 @@ export default function App() {
   const initializing = useAuthStore((state) => state.initializing)
   const session = useAuthStore((state) => state.session)
   const preview = useAuthStore((state) => state.preview)
+  const isPasswordRecovery = useAuthStore((state) => state.isPasswordRecovery)
+  const setPasswordRecovery = useAuthStore((state) => state.setPasswordRecovery)
   const resetGame = useGameStore((state) => state.reset)
 
   const [showAuth, setShowAuth] = useState(false)
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'update_password'>('signin')
 
   useEffect(() => {
     void initialize()
@@ -24,7 +26,7 @@ export default function App() {
     if (!session && !preview) resetGame()
   }, [session, preview, resetGame])
 
-  const signedIn = Boolean(session || preview)
+  const signedIn = Boolean(session || preview) && !isPasswordRecovery
 
   const handleOpenAuth = (mode: 'signin' | 'signup') => {
     setAuthMode(mode)
@@ -40,6 +42,14 @@ export default function App() {
             Restoring session…
           </p>
         </main>
+      ) : isPasswordRecovery ? (
+        <AuthScreen
+          initialMode="update_password"
+          onBack={() => {
+            setPasswordRecovery(false)
+            setShowAuth(false)
+          }}
+        />
       ) : signedIn ? (
         <Dashboard />
       ) : showAuth ? (

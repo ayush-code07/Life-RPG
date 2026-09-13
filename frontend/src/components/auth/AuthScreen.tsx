@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { isSupabaseConfigured, useAuthStore } from '../../store/authStore'
 
-type AuthMode = 'signin' | 'signup' | 'forgot'
+type AuthMode = 'signin' | 'signup' | 'forgot' | 'update_password'
 
 interface AuthScreenProps {
   initialMode?: AuthMode
@@ -11,10 +11,11 @@ interface AuthScreenProps {
 
 export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) {
   const reduceMotion = useReducedMotion()
-  const { signIn, signUp, resetPassword, authError, clearError } = useAuthStore()
+  const { signIn, signUp, resetPassword, updatePassword, setPasswordRecovery, authError, clearError } = useAuthStore()
   const [mode, setMode] = useState<AuthMode>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [username, setUsername] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
@@ -24,6 +25,8 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
       ? 'Enter the guild'
       : mode === 'signup'
       ? 'Create your hero'
+      : mode === 'update_password'
+      ? 'Set new password'
       : 'Reset your password'
 
   const actionLabel =
@@ -31,12 +34,28 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
       ? 'Sign in'
       : mode === 'signup'
       ? 'Create account'
+      : mode === 'update_password'
+      ? 'Save new password'
       : 'Send reset link'
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     clearError()
     setNotice(null)
+
+    if (mode === 'update_password') {
+      if (password.length < 6) {
+        clearError()
+        setNotice(null)
+        return
+      }
+      if (password !== confirmPassword) {
+        setNotice(null)
+        useAuthStore.setState({ authError: 'Passwords do not match.' })
+        return
+      }
+    }
+
     setSubmitting(true)
 
     try {
@@ -45,10 +64,19 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
       } else if (mode === 'signup') {
         await signUp(email, password, username)
         setNotice('Account created. If email confirmation is enabled, check your inbox, then sign in.')
+      } else if (mode === 'update_password') {
+        const res = await updatePassword(password)
+        if (res.success) {
+          setPasswordRecovery(false)
+          setPassword('')
+          setConfirmPassword('')
+          setMode('signin')
+          setNotice('✨ Password updated successfully! Please sign in with your new credentials.')
+        }
       } else {
         const res = await resetPassword(email)
         if (res.success) {
-          setNotice('Password reset link sent to your email. Check your inbox and follow the link to reset.')
+          setNotice('Password reset link sent to your email. Check your inbox and click the recovery link to set your new password.')
         }
       }
     } finally {
@@ -75,7 +103,7 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
         className="relative rounded-2xl border border-gold/25 bg-panel/90 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]"
         aria-labelledby="auth-heading"
       >
-        {onBack && (
+        {onBack && mode !== 'update_password' && (
           <button
             type="button"
             onClick={onBack}
@@ -95,7 +123,9 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
           {heading}
         </h1>
         <p className="mt-2 text-xs text-muted">
-          {mode === 'forgot'
+          {mode === 'update_password'
+            ? 'Inscribe your new secret password below to re-forge your Soulbearer credentials.'
+            : mode === 'forgot'
             ? 'Enter your registered email address and we will dispatch a password recovery seal.'
             : 'Inscribe your soul with Supabase Auth to begin your journey through the Ashen Wastes.'}
         </p>
@@ -119,20 +149,24 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
               required
             />
           )}
-          <Field
-            id="email"
-            label="Email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={setEmail}
-            required
-          />
+
+          {mode !== 'update_password' && (
+            <Field
+              id="email"
+              label="Email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={setEmail}
+              required
+            />
+          )}
+
           {mode !== 'forgot' && (
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label htmlFor="password" className="block text-sm font-medium text-parchment">
-                  Password
+                  {mode === 'update_password' ? 'New Password' : 'Password'}
                 </label>
                 {mode === 'signin' && (
                   <button
@@ -153,6 +187,27 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
                 onChange={(event) => setPassword(event.target.value)}
                 minLength={6}
                 required
+                placeholder={mode === 'update_password' ? 'At least 6 characters' : undefined}
+                className="w-full rounded-xl border border-gold/20 bg-ink px-3 py-2.5 text-parchment placeholder:text-muted/60"
+              />
+            </div>
+          )}
+
+          {mode === 'update_password' && (
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-parchment mb-1">
+                Confirm New Password
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                minLength={6}
+                required
+                placeholder="Repeat new password"
                 className="w-full rounded-xl border border-gold/20 bg-ink px-3 py-2.5 text-parchment placeholder:text-muted/60"
               />
             </div>
@@ -171,6 +226,8 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
                 ? 'Sign in to Life RPG'
                 : mode === 'signup'
                 ? 'Create Life RPG account'
+                : mode === 'update_password'
+                ? 'Update password and proceed to login'
                 : 'Send password recovery link'
             }
             className="w-full rounded-xl bg-gold px-4 py-3 text-sm font-bold text-ink transition enabled:hover:bg-gold-deep disabled:cursor-not-allowed disabled:opacity-60 shadow-[0_0_20px_rgba(226,179,104,0.25)]"
@@ -180,11 +237,14 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
         </form>
 
         <div className="mt-6 flex items-center justify-between gap-3 text-sm">
-          {mode === 'forgot' ? (
+          {mode === 'forgot' || mode === 'update_password' ? (
             <button
               type="button"
               className="font-semibold text-gold underline-offset-4 hover:underline mx-auto"
-              onClick={() => switchMode('signin')}
+              onClick={() => {
+                setPasswordRecovery(false)
+                switchMode('signin')
+              }}
             >
               ← Back to Sign in
             </button>
