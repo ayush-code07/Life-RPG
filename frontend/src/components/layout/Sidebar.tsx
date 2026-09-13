@@ -59,7 +59,7 @@ export function Sidebar() {
     {
       id: 'chronicles',
       label: 'CHRONICLES',
-      sub: 'Codex, Feats & System',
+      sub: 'Rules, Feats & System',
       icon: '📜',
     },
   ]

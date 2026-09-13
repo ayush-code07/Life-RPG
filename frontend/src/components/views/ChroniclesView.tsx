@@ -58,7 +58,7 @@ export function ChroniclesView() {
             </span>
           </div>
           <p className="mt-1 text-xs text-muted">
-            Soul identity, hall of legends feats, sacred kiln codex & procedural acoustic synthesizer.
+            Soul identity, hall of legends feats, ancient book of rules & procedural acoustic synthesizer.
           </p>
         </div>
 
@@ -123,7 +123,7 @@ export function ChroniclesView() {
           }`}
         >
           <span>📜</span>
-          <span>KILN CODEX</span>
+          <span>ANCIENT RULES</span>
         </button>
 
         <button
@@ -365,13 +365,13 @@ export function ChroniclesView() {
         </div>
       )}
 
-      {/* Codex View */}
+      {/* Codex / Ancient Rules View */}
       {subTab === 'codex' && (
         <div className="rounded-2xl border border-[#382d20] bg-[#14110e] p-6 space-y-5">
           <div>
-            <h3 className="font-display text-xl font-black text-parchment">ANCIENT KILN CODEX</h3>
+            <h3 className="font-display text-xl font-black text-parchment">ANCIENT BOOK OF REALM RULES</h3>
             <p className="text-xs text-muted leading-relaxed mt-1">
-              The Ashen Path is a philosophy of disciplined rebirth. Every completed real-world quest kindles the flame of your soul, chipping away at cognitive lethargy.
+              The Ashen Path is a philosophy of disciplined rebirth. Consult the sacred doctrines of flame streak multipliers, stat mappings, mystery loot drops, and combat mechanics.
             </p>
           </div>
 

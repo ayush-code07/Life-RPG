@@ -49,7 +49,7 @@ export function AxiomBanner() {
             </span>
             <span className="text-muted-dark">•</span>
             <span className="text-[10px] tracking-wider text-muted font-mono uppercase">
-              CONSULT ANCIENT CODEX
+              CONSULT ANCIENT RULES
             </span>
           </div>
           <p className="mt-0.5 font-display text-xs sm:text-sm italic text-parchment/90">
