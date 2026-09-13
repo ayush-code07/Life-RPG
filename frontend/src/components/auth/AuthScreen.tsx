@@ -204,13 +204,6 @@ export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) 
             </>
           )}
         </div>
-
-        {/* Creator Attribution */}
-        <div className="mt-8 pt-4 border-t border-[#262018] text-center">
-          <p className="font-mono text-xs text-muted">
-            Ayush Jagnani • Made with coffee and love ☕❤️
-          </p>
-        </div>
       </motion.section>
 
       <AnimatePresence>
