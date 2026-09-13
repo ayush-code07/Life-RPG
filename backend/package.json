@@ -31,6 +31,9 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "pg": "^8.13.3",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -40,10 +43,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.13.9",
-    "@types/pg": "^8.11.11",
-    "rimraf": "^6.0.1",
-    "tsx": "^4.19.3",
-    "typescript": "^5.7.3"
+    "@types/pg": "^8.11.11"
   },
   "engines": {
     "node": ">=18.0.0"
