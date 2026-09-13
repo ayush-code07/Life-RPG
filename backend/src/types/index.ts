@@ -53,6 +53,7 @@ export interface Task {
   difficulty: TaskDifficulty;
   xp_reward: number;
   status: TaskStatus;
+  remind_daily?: boolean;
   due_date: string | null;
   created_at: string;
   attribute_rewards?: TaskAttributeReward[];

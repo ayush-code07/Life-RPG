@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     xp_reward           INTEGER NOT NULL DEFAULT 0,
     status              VARCHAR(20) NOT NULL DEFAULT 'pending'
                             CHECK (status IN ('pending', 'active', 'completed', 'archived')),
+    remind_daily        BOOLEAN NOT NULL DEFAULT FALSE,
     due_date            TIMESTAMPTZ,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

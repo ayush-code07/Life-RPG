@@ -20,7 +20,7 @@ export class TaskService {
   ): Promise<Task[]> {
     let sql = `
       SELECT t.task_id, t.profile_id, t.title, t.description, t.difficulty, 
-             t.xp_reward, t.status, t.due_date, t.created_at,
+             t.xp_reward, t.status, t.remind_daily, t.due_date, t.created_at,
              COALESCE(
                JSON_AGG(
                  JSON_BUILD_OBJECT(
@@ -55,7 +55,7 @@ export class TaskService {
   static async getTaskById(taskId: number, client?: PoolClient): Promise<Task> {
     const sql = `
       SELECT t.task_id, t.profile_id, t.title, t.description, t.difficulty, 
-             t.xp_reward, t.status, t.due_date, t.created_at,
+             t.xp_reward, t.status, t.remind_daily, t.due_date, t.created_at,
              COALESCE(
                JSON_AGG(
                  JSON_BUILD_OBJECT(
@@ -93,6 +93,7 @@ export class TaskService {
       difficulty?: TaskDifficulty;
       xp_reward?: number;
       status?: TaskStatus;
+      remind_daily?: boolean;
       due_date?: string;
       attribute_rewards?: Array<{ attribute_id: number; attribute_xp_value: number }>;
     }
@@ -100,12 +101,13 @@ export class TaskService {
     const difficulty = data.difficulty || 1;
     // Default XP calculation if not manually specified: 50 XP per difficulty star
     const xpReward = data.xp_reward !== undefined ? data.xp_reward : difficulty * 50;
+    const remindDaily = !!data.remind_daily;
 
     return await withTransaction(async (client) => {
       const taskRes = await client.query(
-        `INSERT INTO public.tasks (profile_id, title, description, difficulty, xp_reward, status, due_date)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING task_id, profile_id, title, description, difficulty, xp_reward, status, due_date, created_at`,
+        `INSERT INTO public.tasks (profile_id, title, description, difficulty, xp_reward, status, remind_daily, due_date)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING task_id, profile_id, title, description, difficulty, xp_reward, status, remind_daily, due_date, created_at`,
         [
           userId,
           data.title.trim(),
@@ -113,6 +115,7 @@ export class TaskService {
           difficulty,
           xpReward,
           data.status || 'pending',
+          remindDaily,
           data.due_date || null,
         ]
       );
@@ -148,6 +151,7 @@ export class TaskService {
       difficulty?: TaskDifficulty;
       xp_reward?: number;
       status?: TaskStatus;
+      remind_daily?: boolean;
       due_date?: string | null;
       attribute_rewards?: Array<{ attribute_id: number; attribute_xp_value: number }>;
     }
@@ -176,6 +180,10 @@ export class TaskService {
       if (data.status !== undefined) {
         fields.push(`status = $${idx++}`);
         values.push(data.status);
+      }
+      if (data.remind_daily !== undefined) {
+        fields.push(`remind_daily = $${idx++}`);
+        values.push(!!data.remind_daily);
       }
       if (data.due_date !== undefined) {
         fields.push(`due_date = $${idx++}`);

@@ -70,6 +70,7 @@ export const rpgApi = {
       difficulty?: 1 | 2 | 3 | 4 | 5
       xp_reward?: number
       status?: 'pending' | 'active' | 'completed' | 'archived'
+      remind_daily?: boolean
     }
   ) =>
     request<ApiEnvelope<Task>>('/api/profile/me/tasks', token, {
@@ -93,6 +94,7 @@ export const rpgApi = {
       difficulty?: 1 | 2 | 3 | 4 | 5
       xp_reward?: number
       status?: 'pending' | 'active' | 'completed' | 'archived'
+      remind_daily?: boolean
     }
   ) =>
     request<ApiEnvelope<Task>>(`/api/tasks/${taskId}`, token, {

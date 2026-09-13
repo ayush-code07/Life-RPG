@@ -10,7 +10,7 @@ interface EditQuestModalProps {
   isOpen: boolean
   onClose: () => void
   busy: boolean
-  onSave: (taskId: number, updates: { title: string; description?: string; difficulty: TaskDifficulty; tags?: string[] }) => Promise<void>
+  onSave: (taskId: number, updates: { title: string; description?: string; difficulty: TaskDifficulty; tags?: string[]; remind_daily?: boolean }) => Promise<void>
 }
 
 export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQuestModalProps) {
@@ -18,6 +18,8 @@ export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQue
   const [description, setDescription] = useState('')
   const [difficulty, setDifficulty] = useState<TaskDifficulty>(2)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [remindDaily, setRemindDaily] = useState(false)
+  const [tagError, setTagError] = useState(false)
 
   useEffect(() => {
     if (quest) {
@@ -25,6 +27,8 @@ export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQue
       setDescription(quest.description || '')
       setDifficulty((quest.difficulty as TaskDifficulty) || 2)
       setSelectedTags(quest.tags || [])
+      setRemindDaily(quest.remind_daily || false)
+      setTagError(false)
     }
   }, [quest])
 
@@ -41,6 +45,7 @@ export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQue
 
   const toggleTag = (tagName: string) => {
     soundFx.playClick()
+    setTagError(false)
     setSelectedTags((prev) =>
       prev.includes(tagName) ? prev.filter((t) => t !== tagName) : [...prev, tagName]
     )
@@ -49,6 +54,10 @@ export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQue
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!quest || !title.trim()) return
+    if (selectedTags.length === 0) {
+      setTagError(true)
+      return
+    }
 
     soundFx.playPurchaseSound()
     await onSave(quest.task_id, {
@@ -56,6 +65,7 @@ export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQue
       description: description.trim() || undefined,
       difficulty,
       tags: selectedTags,
+      remind_daily: remindDaily,
     })
     onClose()
   }
@@ -124,6 +134,7 @@ export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQue
                   id="edit-dialog-quest-title"
                   type="text"
                   required
+                  autoFocus
                   maxLength={120}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -151,15 +162,24 @@ export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQue
               </div>
 
               {/* Tags Checklist */}
-              <div className="rounded-xl border border-[#2a221a] bg-[#0e0c0a] p-3.5 space-y-2">
+              <div className={`rounded-xl border p-3.5 space-y-2 transition-all ${
+                tagError && selectedTags.length === 0 ? 'border-red-500/60 bg-red-950/20' : 'border-[#2a221a] bg-[#0e0c0a]'
+              }`}>
                 <div className="flex items-center justify-between">
-                  <h4 className="font-display text-xs font-bold uppercase tracking-wider text-parchment">
-                    Choose Tags
-                  </h4>
-                  <span className="text-[10px] font-mono text-muted">
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="font-display text-xs font-bold uppercase tracking-wider text-parchment">
+                      Choose Tags <span className="text-ember">*</span>
+                    </h4>
+                    <span className="text-[10px] text-muted font-normal">(Select at least 1)</span>
+                  </div>
+                  <span className={`text-[10px] font-mono ${selectedTags.length > 0 ? 'text-gold font-bold' : 'text-muted'}`}>
                     {selectedTags.length} selected
                   </span>
                 </div>
+
+                {tagError && selectedTags.length === 0 && (
+                  <p className="text-[11px] font-mono text-red-400">⚠️ Please select at least one tag to categorize your quest.</p>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
                   {AVAILABLE_TAGS.map((tag) => {
@@ -208,6 +228,40 @@ export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQue
                     )
                   })}
                 </div>
+              </div>
+
+              {/* Remind Me Everyday Toggle */}
+              <div className="flex items-center justify-between rounded-xl border border-[#2a221a] bg-[#0e0c0a] p-3.5 transition-all">
+                <div className="space-y-0.5 pr-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">⏰</span>
+                    <label htmlFor="edit-remind-daily-toggle" className="font-display text-xs font-bold text-parchment cursor-pointer">
+                      Remind me everyday
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-muted leading-tight">
+                    Automatically reset and remind you of this daily trial every dawn to fuel your streak.
+                  </p>
+                </div>
+                <button
+                  id="edit-remind-daily-toggle"
+                  type="button"
+                  role="switch"
+                  aria-checked={remindDaily}
+                  onClick={() => {
+                    soundFx.playClick()
+                    setRemindDaily(!remindDaily)
+                  }}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    remindDaily ? 'bg-gold shadow-[0_0_10px_rgba(226,179,104,0.4)]' : 'bg-[#262018]'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[#0a0908] shadow ring-0 transition duration-200 ease-in-out ${
+                      remindDaily ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
               </div>
 
               {/* Difficulty Tier */}
@@ -267,8 +321,8 @@ export function EditQuestModal({ quest, isOpen, onClose, busy, onSave }: EditQue
 
                 <button
                   type="submit"
-                  disabled={busy || !title.trim()}
-                  className="rounded-xl border border-gold/40 bg-gold px-5 py-2 font-display text-xs font-bold uppercase tracking-wider text-[#0a0908] shadow-[0_0_15px_rgba(226,179,104,0.3)] hover:bg-gold-bright transition-all active:scale-95 disabled:opacity-50"
+                  disabled={busy || !title.trim() || selectedTags.length === 0}
+                  className="rounded-xl border border-gold/40 bg-gold px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wider text-[#0a0908] shadow-[0_0_15px_rgba(226,179,104,0.3)] hover:bg-gold-bright transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {busy ? 'SAVING...' : 'SAVE CHANGES'}
                 </button>

@@ -367,12 +367,12 @@ interface GameState {
   completeQuest: (accessToken: string, taskId: number) => Promise<TaskCompletionResponse>
   addQuest: (
     accessToken: string,
-    input: { title: string; description?: string; difficulty: 1 | 2 | 3 | 4 | 5; tags?: string[] }
+    input: { title: string; description?: string; difficulty: 1 | 2 | 3 | 4 | 5; tags?: string[]; remind_daily?: boolean }
   ) => Promise<void>
   updateQuest: (
     accessToken: string,
     taskId: number,
-    updates: { title?: string; description?: string; difficulty?: 1 | 2 | 3 | 4 | 5; tags?: string[] }
+    updates: { title?: string; description?: string; difficulty?: 1 | 2 | 3 | 4 | 5; tags?: string[]; remind_daily?: boolean }
   ) => Promise<void>
   deleteQuest: (accessToken: string, taskId: number) => Promise<void>
   buyItem: (itemId: number) => boolean
@@ -1536,6 +1536,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       difficulty: input.difficulty,
       xp_reward: XP_BY_DIFFICULTY[input.difficulty],
       status: 'active',
+      remind_daily: input.remind_daily ?? false,
       due_date: null,
       created_at: new Date().toISOString(),
       tags: input.tags ?? [],
@@ -1560,6 +1561,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         difficulty: input.difficulty,
         xp_reward: XP_BY_DIFFICULTY[input.difficulty],
         status: 'active',
+        remind_daily: input.remind_daily,
       })
 
       // Silently reconcile temporary task with server record
@@ -1610,6 +1612,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         description: finalDescription,
         difficulty: updates.difficulty,
         xp_reward: xpReward,
+        remind_daily: updates.remind_daily,
       })
     } catch (err) {
       // Rollback on failure

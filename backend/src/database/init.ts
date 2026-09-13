@@ -15,6 +15,8 @@ export async function initDatabase() {
   try {
     const sql = fs.readFileSync(schemaPath, 'utf-8');
     await pool.query(sql);
+    // Ensure backwards-compatible migrations on existing tables
+    await pool.query('ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS remind_daily BOOLEAN NOT NULL DEFAULT FALSE;');
     console.log('✅ Life RPG database schema initialized successfully!');
   } catch (error: any) {
     console.error('❌ Failed to initialize database schema:', error.message);

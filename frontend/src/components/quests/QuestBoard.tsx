@@ -13,6 +13,7 @@ export const AVAILABLE_TAGS = [
   { name: 'Teams', icon: '👥', color: 'border-purple-500/30 bg-purple-500/10 text-purple-300' },
   { name: 'Chores', icon: '🧹', color: 'border-amber-500/30 bg-amber-500/10 text-amber-300' },
   { name: 'Creativity', icon: '🎨', color: 'border-pink-500/30 bg-pink-500/10 text-pink-300' },
+  { name: 'Others', icon: '✨', color: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300' },
 ] as const
 
 export type TagName = (typeof AVAILABLE_TAGS)[number]['name']
