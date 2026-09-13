@@ -14,6 +14,12 @@ async function startServer() {
     const isHealthy = await checkDatabaseHealth();
     if (isHealthy) {
       logger.info('✅ Connected to PostgreSQL / Supabase successfully.');
+      try {
+        await pool.query('ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS remind_daily BOOLEAN NOT NULL DEFAULT FALSE;');
+        logger.info('✅ Database schema verified (remind_daily column active).');
+      } catch (err: any) {
+        logger.warn('⚠️ Schema check warning:', err.message);
+      }
     } else {
       logger.warn('⚠️ Could not connect to PostgreSQL on startup. Backend will retry on incoming requests.');
     }
