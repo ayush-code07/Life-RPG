@@ -351,6 +351,7 @@ interface GameState {
   bossTier: number
   bossVictoryReward: { boss: BossEntity; coins: number; xp: number } | null
   heroComboCharge: number
+  slashCharges: number
   combatLog: CombatLogEntry[]
   loading: boolean
   syncing: boolean
@@ -387,6 +388,7 @@ interface GameState {
   claimLootDrop: (loot: LootReward) => void
   claimAchievement: (achievementId: string) => void
   strikeBoss: (damage: number, sourceTitle: string) => void
+  useSlashCharge: () => boolean
   unleashLimitBreak: () => void
   claimBossVictory: () => void
   dismissBossVictory: () => void
@@ -435,6 +437,13 @@ const getStoredCoins = (userId?: string): number => {
   const key = userId ? `ashen_coins_${userId}` : 'ashen_coins'
   const val = localStorage.getItem(key)
   return val !== null ? parseInt(val, 10) : 25
+}
+
+export const getStoredSlashCharges = (userId?: string): number => {
+  if (typeof window === 'undefined') return 2
+  const key = userId ? `ashen_slash_charges_${userId}` : 'ashen_slash_charges'
+  const val = localStorage.getItem(key)
+  return val !== null ? parseInt(val, 10) : 2
 }
 
 const getStoredAchievements = (userId?: string): Achievement[] => {
@@ -587,6 +596,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   bossTier: initialBossData.tier,
   bossVictoryReward: null,
   heroComboCharge: 35,
+  slashCharges: getStoredSlashCharges(),
   combatLog: [
     {
       id: 'log_init',
@@ -799,6 +809,71 @@ export const useGameStore = create<GameState>((set, get) => ({
         combatLog: [newLogEntry, ...s.combatLog.slice(0, 15)],
       }))
     }
+  },
+
+  useSlashCharge: () => {
+    const charges = get().slashCharges
+    const currentBoss = get().boss
+    if (charges <= 0 || currentBoss.currentHp <= 0) return false
+
+    soundFx.playSwordSlash()
+    soundFx.playBossHit()
+
+    const newCharges = charges - 1
+    const userId = get().profile?.id
+    if (typeof window !== 'undefined') {
+      const slashKey = userId ? `ashen_slash_charges_${userId}` : 'ashen_slash_charges'
+      localStorage.setItem(slashKey, String(newCharges))
+    }
+
+    const equippedWeapon = get().shopItems.find((i) => i.isEquipped && i.type === 'weapon')
+    const damage = 35 + (equippedWeapon ? 30 : 0)
+    const newHp = Math.max(0, currentBoss.currentHp - damage)
+    const isSlayed = newHp === 0
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+    const logEntry: CombatLogEntry = {
+      id: `log_slash_${Date.now()}`,
+      text: `🗡️ Work-Earned Hero Slash struck ${currentBoss.name} for -${damage} HP! (1 charge used, ${newCharges} left)`,
+      damage,
+      type: 'player_hit',
+      timestamp: timeStr,
+    }
+
+    if (typeof window !== 'undefined') {
+      const bossHpKey = userId ? `ashen_boss_hp_${currentBoss.id}_${userId}` : `ashen_boss_hp_${currentBoss.id}`
+      localStorage.setItem(bossHpKey, String(newHp))
+    }
+
+    if (isSlayed) {
+      soundFx.playVictoryFanfare()
+      const victoryEntry: CombatLogEntry = {
+        id: `log_vic_${Date.now()}`,
+        text: `👑 VICTORY! ${currentBoss.name} has been vanquished!`,
+        damage: 0,
+        type: 'victory',
+        timestamp: timeStr,
+      }
+      set({
+        slashCharges: newCharges,
+        boss: { ...currentBoss, currentHp: 0, isDefeated: true },
+        bossVictoryReward: {
+          boss: currentBoss,
+          coins: currentBoss.bountyCoins,
+          xp: currentBoss.bountyXp,
+        },
+        heroComboCharge: 100,
+        combatLog: [victoryEntry, logEntry, ...get().combatLog.slice(0, 15)],
+      })
+    } else {
+      set((s) => ({
+        slashCharges: newCharges,
+        boss: { ...s.boss, currentHp: newHp },
+        heroComboCharge: Math.min(100, s.heroComboCharge + 15),
+        combatLog: [logEntry, ...s.combatLog.slice(0, 15)],
+      }))
+    }
+    return true
   },
 
   unleashLimitBreak: () => {
@@ -1108,12 +1183,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (accessToken === PREVIEW_TOKEN) {
       const localCoins = getStoredCoins('preview')
       const localShop = getStoredShopItems('preview')
+      const localSlashCharges = getStoredSlashCharges('preview')
       const localTheme = typeof window !== 'undefined' ? localStorage.getItem('ashen_theme_preview') || 'theme-midnight-ember' : 'theme-midnight-ember'
       const localBadge = typeof window !== 'undefined' ? localStorage.getItem('ashen_badge_preview') || '' : ''
       set({
         profile: { ...previewProfile, coins: localCoins, active_theme: localTheme, active_badge: localBadge },
         coins: localCoins,
         shopItems: localShop,
+        slashCharges: localSlashCharges,
         tasks: previewTasks,
         attributes: previewAttributes,
         inventory: [
@@ -1150,6 +1227,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const userId = profile.id
       let syncedCoins = profile.coins !== undefined && profile.coins !== null ? profile.coins : getStoredCoins(userId)
       let syncedShop = getStoredShopItems(userId)
+      const syncedSlashCharges = getStoredSlashCharges(userId)
 
       if (profile.coins !== undefined && profile.coins !== null) {
         syncedCoins = profile.coins
@@ -1172,6 +1250,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         profile,
         coins: syncedCoins,
         shopItems: syncedShop,
+        slashCharges: syncedSlashCharges,
         tasks: tasks.map(parseTaskTags),
         attributes,
         streakInfo,
@@ -1285,8 +1364,13 @@ export const useGameStore = create<GameState>((set, get) => ({
         const updatedCoins = get().coins + earnedCoins
         const nextStreak = current.current_streak + 1
 
+        // Slash Charges Economy: 1 slash per 50 XP gained from work
+        const slashesEarned = Math.max(1, Math.floor(effectiveXp / 50))
+        const updatedSlashCharges = get().slashCharges + slashesEarned
+
         if (typeof window !== 'undefined') {
           localStorage.setItem('ashen_coins', String(updatedCoins))
+          localStorage.setItem('ashen_slash_charges', String(updatedSlashCharges))
         }
 
         soundFx.playCoinSound()
@@ -1308,10 +1392,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         const result: TaskCompletionResponse = {
           message: gained.levelsGained > 0
-            ? `🎉 Level Up! (+${gained.levelsGained * 10} Coins)`
+            ? `🎉 Level Up! (+${gained.levelsGained * 10} Coins, +${slashesEarned} Hero Slashes)`
             : streakMultiplier > 1.0
-              ? `Quest complete. +${effectiveXp} XP (${streakMultiplier}x Flame Streak Bonus!)`
-              : 'Quest complete. (+1 Coin)',
+              ? `Quest complete. +${effectiveXp} XP (${streakMultiplier}x Flame Streak Bonus!) • +${slashesEarned} Hero Slash`
+              : `Quest complete. (+1 Coin, +${slashesEarned} Hero Slash)`,
           task: { task_id: target.task_id, title: target.title, xp_awarded: effectiveXp },
           profile: {
             id: current.id,
@@ -1328,6 +1412,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         set({
           coins: updatedCoins,
+          slashCharges: updatedSlashCharges,
           attributes: updatedAttributes,
           achievements: updatedAchievements,
           lootDrop: droppedLoot,
@@ -1351,9 +1436,15 @@ export const useGameStore = create<GameState>((set, get) => ({
       const updatedCoins = get().coins + earnedCoins
       const userId = get().profile?.id
 
+      // Slash Charges Economy: 1 slash per 50 XP gained from work
+      const slashesEarned = Math.max(1, Math.floor(effectiveXp / 50))
+      const updatedSlashCharges = get().slashCharges + slashesEarned
+
       if (typeof window !== 'undefined') {
         const coinKey = userId ? `ashen_coins_${userId}` : 'ashen_coins'
+        const slashKey = userId ? `ashen_slash_charges_${userId}` : 'ashen_slash_charges'
         localStorage.setItem(coinKey, String(updatedCoins))
+        localStorage.setItem(slashKey, String(updatedSlashCharges))
       }
 
       soundFx.playCoinSound()
@@ -1386,6 +1477,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       set({
         coins: updatedCoins,
+        slashCharges: updatedSlashCharges,
         attributes: finalAttributes,
         achievements: updatedAchievements,
         lootDrop: droppedLoot,
@@ -1536,6 +1628,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       bossTier: initialBoss.tier,
       bossVictoryReward: null,
       heroComboCharge: 0,
+      slashCharges: 0,
       combatLog: [],
       loading: false,
       syncing: false,

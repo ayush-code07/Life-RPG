@@ -11,10 +11,11 @@ export function BossArenaView() {
     bossTier,
     bossVictoryReward,
     heroComboCharge,
+    slashCharges,
     combatLog,
     tasks,
     shopItems,
-    strikeBoss,
+    useSlashCharge,
     unleashLimitBreak,
     claimBossVictory,
     dismissBossVictory,
@@ -36,10 +37,11 @@ export function BossArenaView() {
     setTimeout(() => setFloatingDamage(null), 1200)
   }
 
-  const handleManualSlash = () => {
-    const baseDmg = equippedWeapon ? 45 : 25
+  const handleHeroSlash = () => {
+    if (slashCharges <= 0 || currentHp <= 0) return
+    const baseDmg = 35 + (equippedWeapon ? 30 : 0)
     triggerDamageNumber(baseDmg)
-    strikeBoss(baseDmg, 'Hero Slash')
+    useSlashCharge()
   }
 
   const handleLimitBreak = () => {
@@ -210,11 +212,52 @@ export function BossArenaView() {
         </div>
       </div>
 
-      {/* Hero Limit Break & Instant Strike Hub */}
+      {/* Hero Combat Actions & Instant Strike Hub */}
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-12 items-start">
         {/* Left 7 Cols: Combat Actions & Quest Attack List */}
         <div className="lg:col-span-7 space-y-4">
-          {/* Limit Break Gauge */}
+          {/* Work-Earned Hero Slash Arsenal Card */}
+          <div className="rounded-2xl border border-gold/40 bg-gradient-to-br from-[#18130e] via-[#120e0a] to-[#0c0906] p-5 space-y-3.5 shadow-lg">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#262018] pb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-base text-gold">⚔️</span>
+                <h4 className="font-display text-xs font-bold text-parchment tracking-wider uppercase">
+                  WORK-EARNED HERO SLASH
+                </h4>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={`rounded-lg px-2.5 py-0.5 font-mono text-xs font-black ${
+                  slashCharges > 0
+                    ? 'border border-gold/50 bg-gold/20 text-gold shadow-[0_0_10px_rgba(226,179,104,0.3)]'
+                    : 'border border-[#2e261d] bg-[#120f0c] text-muted'
+                }`}>
+                  {slashCharges} {slashCharges === 1 ? 'CHARGE' : 'CHARGES'} READY
+                </span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-muted leading-relaxed">
+              Slash charges are forged solely through your real-world discipline (<strong className="text-gold">1 charge per 50 XP earned</strong>). Complete active quests below or in your Sanctuary to arm your blade!
+            </p>
+
+            <button
+              type="button"
+              onClick={handleHeroSlash}
+              disabled={slashCharges <= 0 || currentHp <= 0}
+              className={`w-full flex items-center justify-center gap-2.5 rounded-xl border py-3.5 px-4 font-display text-xs font-black uppercase tracking-wider transition-all ${
+                slashCharges > 0 && currentHp > 0
+                  ? 'border-gold bg-gradient-to-r from-ember via-gold-bright to-gold text-black shadow-[0_0_20px_rgba(226,179,104,0.4)] hover:brightness-110 active:scale-95 cursor-pointer'
+                  : 'border-[#262018] bg-[#0d0b09] text-muted opacity-50 cursor-not-allowed'
+              }`}
+            >
+              <span>⚔️</span>
+              {slashCharges > 0 && currentHp > 0
+                ? `UNLEASH HERO SLASH (DEALS -${35 + (equippedWeapon ? 30 : 0)} HP) • [${slashCharges} AVAILABLE]`
+                : '🔒 NO SLASH CHARGES (COMPLETE WORK/QUESTS TO EARN)'}
+            </button>
+          </div>
+
+          {/* Hero Limit Break Gauge */}
           <div className="rounded-2xl border border-gold/30 bg-[#14110e] p-5 space-y-3">
             <div className="flex items-center justify-between font-mono text-xs">
               <div className="flex items-center gap-2">
@@ -231,29 +274,18 @@ export function BossArenaView() {
               />
             </div>
 
-            <div className="flex items-center gap-3 pt-1">
-              <button
-                type="button"
-                onClick={handleLimitBreak}
-                disabled={heroComboCharge < 100 || currentHp <= 0}
-                className={`flex-1 rounded-xl border py-3 px-4 font-display text-xs font-black uppercase tracking-wider transition-all ${
-                  heroComboCharge >= 100 && currentHp > 0
-                    ? 'border-gold bg-gradient-to-r from-gold via-gold-bright to-gold text-black shadow-[0_0_20px_rgba(226,179,104,0.5)] hover:brightness-110 active:scale-95 animate-pulse'
-                    : 'border-[#262018] bg-[#0d0b09] text-muted opacity-40 cursor-not-allowed'
-                }`}
-              >
-                ⚡ UNLEASH SOLAR ARCANE CLEAVE (35% BOSS HP)
-              </button>
-
-              <button
-                type="button"
-                onClick={handleManualSlash}
-                disabled={currentHp <= 0}
-                className="rounded-xl border border-gold/40 bg-[#1a140f] px-4 py-3 font-display text-xs font-bold tracking-wider text-gold hover:bg-gold/15 active:scale-95 transition-all shadow-sm"
-              >
-                🗡️ TEST SLASH
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleLimitBreak}
+              disabled={heroComboCharge < 100 || currentHp <= 0}
+              className={`w-full rounded-xl border py-3 px-4 font-display text-xs font-black uppercase tracking-wider transition-all ${
+                heroComboCharge >= 100 && currentHp > 0
+                  ? 'border-gold bg-gradient-to-r from-gold via-gold-bright to-gold text-black shadow-[0_0_20px_rgba(226,179,104,0.5)] hover:brightness-110 active:scale-95 animate-pulse cursor-pointer'
+                  : 'border-[#262018] bg-[#0d0b09] text-muted opacity-40 cursor-not-allowed'
+              }`}
+            >
+              ⚡ UNLEASH SOLAR ARCANE CLEAVE (DEALS 35% BOSS HP)
+            </button>
           </div>
 
           {/* Active Quests Strike Deck */}
