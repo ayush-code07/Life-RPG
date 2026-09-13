@@ -59,6 +59,30 @@ body {
   box-shadow: 0 0 20px rgba(230, 92, 36, 0.2), inset 0 0 10px rgba(230, 92, 36, 0.08);
 }
 
+/* Custom Realm Navigation Scrollbar */
+.realm-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(226, 179, 104, 0.25) rgba(14, 12, 10, 0.4);
+}
+
+.realm-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.realm-scrollbar::-webkit-scrollbar-track {
+  background: rgba(14, 12, 10, 0.4);
+  border-radius: 4px;
+}
+
+.realm-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(226, 179, 104, 0.25);
+  border-radius: 4px;
+}
+
+.realm-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(226, 179, 104, 0.5);
+}
+
 .text-gold-gradient {
   background: linear-gradient(135deg, #ffd175 0%, #e2b368 50%, #b38634 100%);
   -webkit-background-clip: text;
