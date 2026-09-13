@@ -165,6 +165,13 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
             <rect x="13" y="6" width="2" height="2" fill="#0284c7" />
             <rect x="10" y="9" width="4" height="1.5" fill="#0369a1" />
           </>
+        ) : resting ? (
+          /* Peaceful closed sleeping eyes */
+          <>
+            <rect x="9" y="7" width="2" height="1" fill="#451a03" />
+            <rect x="13" y="7" width="2" height="1" fill="#451a03" />
+            <rect x="11" y="9" width="2" height="0.8" fill="#78350f" />
+          </>
         ) : (
           /* Expressive Cute Pixel Eyes & Smile */
           <>

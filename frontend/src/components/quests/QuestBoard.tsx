@@ -34,7 +34,7 @@ export function QuestBoard({ quests, busy, onComplete, onEdit, onDelete, onOpenC
   const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null)
 
   const completedCount = quests.filter((q) => q.status === 'completed').length
-  const totalCount = quests.length || 5
+  const totalCount = quests.length
 
   const filteredQuests = quests.filter((quest) => {
     if (filter === 'ACTIVE' && (quest.status === 'completed' || quest.status === 'archived')) return false

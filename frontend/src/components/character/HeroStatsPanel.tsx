@@ -3,9 +3,9 @@ import { useGameStore } from '../../store/gameStore'
 export function HeroStatsPanel() {
   const { profile, attributes } = useGameStore()
 
-  const level = profile?.current_level ?? 12
-  const currentXP = profile?.progress_xp ?? 320
-  const neededXP = profile?.xp_needed_for_next ?? 500
+  const level = profile?.current_level ?? 1
+  const currentXP = profile?.progress_xp ?? 0
+  const neededXP = profile?.xp_needed_for_next ?? 100
   const progressPercent = Math.min(100, Math.max(0, Math.round((currentXP / neededXP) * 100)))
 
   const abilities = [
@@ -14,8 +14,8 @@ export function HeroStatsPanel() {
       icon: '⚔️',
       matchKey: 'strength',
       matchId: 1,
-      defaultVal: 18,
-      defaultXp: 45,
+      defaultVal: 0,
+      defaultXp: 0,
       barColor: 'from-[#e65c24] to-[#ffd175]',
       textColor: 'text-amber-300',
     },
@@ -24,8 +24,8 @@ export function HeroStatsPanel() {
       icon: '🧠',
       matchKey: 'intellect',
       matchId: 2,
-      defaultVal: 22,
-      defaultXp: 75,
+      defaultVal: 0,
+      defaultXp: 0,
       barColor: 'from-[#2563eb] to-[#60a5fa]',
       textColor: 'text-blue-300',
     },
@@ -34,8 +34,8 @@ export function HeroStatsPanel() {
       icon: '❤️',
       matchKey: 'vitality',
       matchId: 5,
-      defaultVal: 16,
-      defaultXp: 30,
+      defaultVal: 0,
+      defaultXp: 0,
       barColor: 'from-[#e11d48] to-[#fb7185]',
       textColor: 'text-rose-300',
     },
@@ -44,8 +44,8 @@ export function HeroStatsPanel() {
       icon: '✨',
       matchKey: 'discipline',
       matchId: 3,
-      defaultVal: 24,
-      defaultXp: 90,
+      defaultVal: 0,
+      defaultXp: 0,
       barColor: 'from-[#ca8a04] to-[#fef08a]',
       textColor: 'text-yellow-300',
     },

@@ -1094,11 +1094,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   restAtBonfire: () => {
-    soundFx.playBonfireRest()
-    set({ resting: true })
-    setTimeout(() => {
+    const isCurrentlyResting = get().resting
+    if (!isCurrentlyResting) {
+      soundFx.playBonfireRest()
+      set({ resting: true })
+    } else {
+      soundFx.playClick()
       set({ resting: false })
-    }, 1500)
+    }
   },
 
   buyItem: (itemId: number) => {

@@ -25,6 +25,11 @@ export class AttributeService {
        ORDER BY pa.attribute_id ASC`,
       [userId]
     );
+
+    if (rows.length === 0) {
+      return this.seedProfileAttributes(userId);
+    }
+
     return rows;
   }
 

@@ -20,7 +20,7 @@ export function AttributesView() {
       (a) => a.attribute_name?.toLowerCase() === attrName.toLowerCase() || a.attribute_id === idx + 1
     )
 
-    const val = found?.attribute_value ?? 10
+    const val = found?.attribute_value ?? 0
     const xp = (found?.attribute_xp ?? 0) % 100
     const totalXp = found?.attribute_xp ?? 0
     const max = 100
