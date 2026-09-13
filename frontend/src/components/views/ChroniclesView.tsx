@@ -4,7 +4,7 @@ import { useGameStore } from '../../store/gameStore'
 import { PixelHeroSprite } from '../character/PixelHeroSprite'
 
 type SubTab = 'profile' | 'feats' | 'codex' | 'settings'
-type SpritePose = 'idle' | 'attack' | 'cast' | 'cheer'
+type SpritePose = 'idle' | 'cheer'
 type FeatCategory = 'all' | 'combat' | 'discipline' | 'mastery' | 'wealth'
 
 export function ChroniclesView() {
@@ -13,6 +13,7 @@ export function ChroniclesView() {
   const [featCategory, setFeatCategory] = useState<FeatCategory>('all')
   const {
     profile,
+    attributes,
     coins,
     achievements,
     sfxEnabled,
@@ -31,6 +32,13 @@ export function ChroniclesView() {
   const streak = profile?.current_streak ?? 0
   const gold = coins
 
+  const getAttrVal = (name: string, matchId: number) => {
+    const found = attributes.find(
+      (a) => a.attribute_name?.toLowerCase().includes(name.toLowerCase()) || a.attribute_id === matchId
+    )
+    return found?.attribute_value ?? 0
+  }
+
   const unlockedCount = achievements.filter((a) => a.isUnlocked).length
   const filteredAchievements = achievements.filter((a) =>
     featCategory === 'all' ? true : a.category === featCategory
@@ -38,9 +46,7 @@ export function ChroniclesView() {
 
   const handlePoseChange = (pose: SpritePose) => {
     setSpritePose(pose)
-    if (pose === 'attack') soundFx.playSwordSlash()
-    else if (pose === 'cast') soundFx.playBonfireRest()
-    else if (pose === 'cheer') soundFx.playLevelUp()
+    if (pose === 'cheer') soundFx.playLevelUp()
     else soundFx.playClick()
   }
 
@@ -152,7 +158,7 @@ export function ChroniclesView() {
               {/* 16-BIT Pixel Avatar Box */}
               <div className="flex flex-col items-center gap-2">
                 <div className="relative flex h-36 w-36 items-center justify-center rounded-xl border-2 border-gold/40 bg-[#0d0b08] p-2 shadow-[0_0_20px_rgba(226,179,104,0.15)]">
-                  <div className={`transition-transform duration-300 ${spritePose === 'idle' ? 'animate-knight-idle' : spritePose === 'attack' ? 'translate-x-2' : spritePose === 'cheer' ? '-translate-y-2' : 'scale-105'}`}>
+                  <div className={`transition-transform duration-300 ${spritePose === 'cheer' ? '-translate-y-2' : 'animate-knight-idle'}`}>
                     <PixelHeroSprite pose={spritePose} size={84} />
                   </div>
                   <span className="absolute bottom-1 right-1.5 rounded bg-[#100d0a] px-1 font-mono text-[9px] font-bold text-muted border border-[#2e261d]">
@@ -161,15 +167,15 @@ export function ChroniclesView() {
                 </div>
 
                 {/* Pose Action Buttons */}
-                <div className="grid grid-cols-4 gap-1 w-36">
-                  {(['idle', 'attack', 'cast', 'cheer'] as SpritePose[]).map((pose) => (
+                <div className="grid grid-cols-2 gap-1.5 w-36">
+                  {(['idle', 'cheer'] as SpritePose[]).map((pose) => (
                     <button
                       key={pose}
                       type="button"
                       onClick={() => handlePoseChange(pose)}
-                      className={`rounded px-1 py-0.5 font-mono text-[10px] font-semibold uppercase transition-colors ${
+                      className={`rounded px-2 py-1 font-mono text-[10px] font-semibold uppercase transition-colors ${
                         spritePose === pose
-                          ? 'bg-gold text-[#0a0908] font-bold'
+                          ? 'bg-gold text-[#0a0908] font-bold shadow-[0_0_8px_rgba(226,179,104,0.3)]'
                           : 'bg-[#100d0a] text-muted hover:text-parchment border border-[#2e261d]'
                       }`}
                     >
@@ -256,10 +262,10 @@ export function ChroniclesView() {
             </div>
 
             <div className="space-y-3.5">
-              <SegmentedMeter label="STRENGTH" icon="⚔️" value={10} max={40} color="red" />
-              <SegmentedMeter label="INTELLECT" icon="🧠" value={18} max={40} color="cyan" />
-              <SegmentedMeter label="VITALITY" icon="❤️" value={12} max={40} color="green" />
-              <SegmentedMeter label="FOCUS" icon="✨" value={15} max={40} color="gold" />
+              <SegmentedMeter label="STRENGTH" icon="⚔️" value={getAttrVal('strength', 1)} max={40} color="red" />
+              <SegmentedMeter label="INTELLECT" icon="🧠" value={getAttrVal('intellect', 2)} max={40} color="cyan" />
+              <SegmentedMeter label="VITALITY" icon="❤️" value={getAttrVal('vitality', 5)} max={40} color="green" />
+              <SegmentedMeter label="FOCUS" icon="✨" value={getAttrVal('discipline', 3)} max={40} color="gold" />
             </div>
           </div>
         </div>
