@@ -15,7 +15,10 @@ export function createApp(): Application {
   // CORS configuration
   app.use(
     cors({
-      origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(','),
+      origin:
+        env.CORS_ORIGIN === '*'
+          ? '*'
+          : env.CORS_ORIGIN.split(',').map((s) => s.trim()),
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,

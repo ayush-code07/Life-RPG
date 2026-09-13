@@ -1,10 +1,14 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { env } from './env';
 
-// Determine SSL config based on environment and setting
-const sslConfig = env.DATABASE_SSL
-  ? { rejectUnauthorized: false }
-  : false;
+// Determine SSL config based on environment, setting, or Supabase connection
+const useSsl =
+  env.DATABASE_SSL ||
+  env.DATABASE_URL.includes('supabase.co') ||
+  env.DATABASE_URL.includes('pooler.supabase.com') ||
+  env.DATABASE_URL.includes('sslmode=require');
+
+const sslConfig = useSsl ? { rejectUnauthorized: false } : false;
 
 export const pool = new Pool({
   connectionString: env.DATABASE_URL,
