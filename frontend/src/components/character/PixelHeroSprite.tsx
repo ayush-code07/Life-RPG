@@ -25,6 +25,7 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
   const hasRoyalPlate = isEquipped(9)
   const hasCrown = isEquipped(10)
   const hasCloak = isEquipped(11)
+  const hasSunfireSword = isEquipped(12)
 
   return (
     <div className={`relative inline-flex items-center justify-center ${poseClass} ${restingClass}`} style={{ width: size, height: size }}>
@@ -157,7 +158,7 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
             <rect x="9.5" y="6.5" width="1.5" height="1.5" fill="#0f172a" />
             {/* Right Eye */}
             <rect x="13" y="6" width="2" height="2" fill="#ffffff" />
-            <rect x="13" y="6.5" width="1.5" height="1.5" fill="#0f172a" />
+            <rect x="13.5" y="6.5" width="1.5" height="1.5" fill="#0f172a" />
             {/* Smile */}
             <rect x="11" y="9" width="2" height="1" fill="#78350f" />
           </>
@@ -220,7 +221,30 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
         )}
 
         {/* ================= 8. WEAPON (RIGHT HAND) ================= */}
-        {hasLanternHalberd ? (
+        {hasSunfireSword ? (
+          /* Sunfire Greatsword (Colossal Blade Bathed in Solar Flame) */
+          <>
+            {/* Golden Sun Crossguard & Hilt */}
+            <rect x="15.5" y="13" width="5" height="1.5" fill="#f59e0b" />
+            <rect x="16.5" y="12.5" width="3" height="0.5" fill="#fbbf24" />
+            <rect x="17.5" y="14.5" width="1.5" height="2.5" fill="#78350f" />
+            <rect x="17" y="17" width="2.5" height="1" fill="#f59e0b" />
+            <circle cx="18" cy="13.75" r="0.8" fill="#ef4444" />
+
+            {/* Radiant Solar Blade */}
+            <rect x="17" y="6" width="3.5" height="7" fill="#ea580c" />
+            <rect x="17.5" y="5" width="3" height="8" fill="#f97316" />
+            <rect x="18" y="3" width="2.5" height="10" fill="#fbbf24" />
+            <rect x="18.5" y="1" width="2" height="11" fill="#fef08a" />
+            <rect x="19" y="0" width="1" height="10" fill="#ffffff" />
+
+            {/* Fiery Solar Ember Flames */}
+            <rect x="16.5" y="4" width="1" height="2" fill="#ef4444" />
+            <rect x="21" y="2" width="1" height="2" fill="#f97316" />
+            <rect x="20.5" y="6" width="1" height="3" fill="#ea580c" />
+            <circle cx="19" cy="5" r="3.5" fill="#fbbf24" fillOpacity="0.2" />
+          </>
+        ) : hasLanternHalberd ? (
           /* Lantern Halberd Polearm with Glowing Lantern */
           <>
             {/* Wooden Shaft */}
@@ -238,7 +262,7 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
             <circle cx="21.5" cy="9" r="2.5" fill="#fbbf24" fillOpacity="0.25" />
           </>
         ) : hasSilverSword ? (
-          /* Silver Adventurer Sword (Diagonal Upward Blade like inspiration image) */
+          /* Silver Adventurer Sword (Diagonal Upward Blade) */
           <>
             {/* Crossguard & Pommel */}
             <rect x="16.5" y="13" width="3" height="1" fill="#fbbf24" />

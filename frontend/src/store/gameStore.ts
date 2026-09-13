@@ -469,6 +469,32 @@ const getStoredAchievements = (userId?: string): Achievement[] => {
   }
 }
 
+export function getItemSlot(item: ShopItem): string {
+  if (item.type === 'theme') return 'theme'
+  if (item.type === 'badge') return 'badge'
+  if (item.type === 'weapon') return 'weapon'
+  if (item.type === 'shield') return 'shield'
+  if (item.type === 'cloak') return 'cloak'
+  if (item.id === 2 || item.id === 6 || item.id === 10) return 'head' // Helmets, Masks, Crowns
+  if (item.id === 5 || item.id === 9) return 'chest' // Vests, Chestplates
+  if (item.id === 4) return 'belt' // Potion vial
+  if (item.id === 7) return 'pet' // Wisp companion
+  return item.type
+}
+
+function sanitizeEquippedSlots(items: ShopItem[]): ShopItem[] {
+  const seenSlots = new Set<string>()
+  return items.map((item) => {
+    if (!item.isEquipped) return item
+    const slot = getItemSlot(item)
+    if (seenSlots.has(slot)) {
+      return { ...item, isEquipped: false }
+    }
+    seenSlots.add(slot)
+    return item
+  })
+}
+
 const getStoredShopItems = (userId?: string): ShopItem[] => {
   if (typeof window === 'undefined') return INITIAL_SHOP_ITEMS
   try {
@@ -476,7 +502,7 @@ const getStoredShopItems = (userId?: string): ShopItem[] => {
     const val = localStorage.getItem(key)
     if (!val) return INITIAL_SHOP_ITEMS
     const stored: ShopItem[] = JSON.parse(val)
-    return INITIAL_SHOP_ITEMS.map((item) => {
+    const raw = INITIAL_SHOP_ITEMS.map((item) => {
       const match = stored.find((s) => s.id === item.id)
       return match
         ? {
@@ -486,6 +512,7 @@ const getStoredShopItems = (userId?: string): ShopItem[] => {
           }
         : item
     })
+    return sanitizeEquippedSlots(raw)
   } catch {
     return INITIAL_SHOP_ITEMS
   }
@@ -1012,14 +1039,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     const newCoins = currentCoins - item.price
+    const targetSlot = getItemSlot(item)
     const updatedShop = get().shopItems.map((i) => {
       if (i.id === itemId) {
         return { ...i, isPurchased: true, isEquipped: true }
       }
-      if (item.type === 'theme' && i.type === 'theme') {
-        return { ...i, isEquipped: false }
-      }
-      if (item.type === 'badge' && i.type === 'badge') {
+      if (getItemSlot(i) === targetSlot) {
         return { ...i, isEquipped: false }
       }
       return i
@@ -1077,7 +1102,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       coins: newCoins,
       shopItems: updatedShop,
-      inventory: [newInvItem, ...get().inventory],
+      inventory: [newInvItem, ...get().inventory.map((inv) => {
+        const matchingShop = get().shopItems.find((s) => s.id === inv.item_id)
+        if (matchingShop && getItemSlot(matchingShop) === targetSlot) {
+          return { ...inv, equipped: false }
+        }
+        return inv
+      })],
       achievements: updatedAchievements,
       profile: get().profile ? {
         ...get().profile!,
@@ -1100,15 +1131,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!target || !target.isPurchased) return
 
     const nextEquipped = !target.isEquipped
+    const targetSlot = getItemSlot(target)
 
     const updatedShop = get().shopItems.map((i) => {
       if (i.id === itemId) {
         return { ...i, isEquipped: nextEquipped }
       }
-      if (target.type === 'theme' && nextEquipped && i.type === 'theme') {
-        return { ...i, isEquipped: false }
-      }
-      if (target.type === 'badge' && nextEquipped && i.type === 'badge') {
+      if (nextEquipped && getItemSlot(i) === targetSlot) {
         return { ...i, isEquipped: false }
       }
       return i
@@ -1118,10 +1147,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (inv.item_id === itemId) {
         return { ...inv, equipped: nextEquipped }
       }
-      if (target.type === 'theme' && nextEquipped && inv.item_type === 'theme') {
-        return { ...inv, equipped: false }
-      }
-      if (target.type === 'badge' && nextEquipped && inv.item_type === 'badge') {
+      const matchItem = get().shopItems.find((s) => s.id === inv.item_id)
+      if (nextEquipped && matchItem && getItemSlot(matchItem) === targetSlot) {
         return { ...inv, equipped: false }
       }
       return inv
