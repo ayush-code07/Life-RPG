@@ -26,6 +26,9 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
   const hasCrown = isEquipped(10)
   const hasCloak = isEquipped(11)
   const hasSunfireSword = isEquipped(12)
+  const hasExcalibur = isEquipped(13)
+  const hasAegisImmortal = isEquipped(14)
+  const hasAstralRegalia = isEquipped(15)
 
   return (
     <div className={`relative inline-flex items-center justify-center ${poseClass} ${restingClass}`} style={{ width: size, height: size }}>
@@ -82,7 +85,19 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
         <rect x="12.5" y="21" width="3.5" height="1" fill="#0a0502" />
 
         {/* ================= 3. TORSO & SHIRT ================= */}
-        {hasRoyalPlate ? (
+        {hasAstralRegalia ? (
+          /* Emperor's Astral Regalia - Ornate Gold & Deep Astral Cosmic Robe */
+          <>
+            <rect x="8" y="10" width="8" height="6" fill="#3b0764" />
+            <rect x="9" y="11" width="6" height="4" fill="#6b21a8" />
+            <rect x="11" y="11" width="2" height="4" fill="#fbbf24" />
+            {/* Gilded Astral Pauldrons */}
+            <rect x="6" y="9" width="3" height="4" fill="#f59e0b" />
+            <rect x="15" y="9" width="3" height="4" fill="#f59e0b" />
+            <rect x="7" y="10" width="1" height="2" fill="#ffffff" />
+            <rect x="16" y="10" width="1" height="2" fill="#ffffff" />
+          </>
+        ) : hasRoyalPlate ? (
           /* Blue Knight Steel Heavy Plate Armor */
           <>
             <rect x="8" y="10" width="8" height="6" fill="#1e3a8a" />
@@ -151,7 +166,7 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
             <rect x="10" y="9" width="4" height="1.5" fill="#0369a1" />
           </>
         ) : (
-          /* Expressive Cute Pixel Eyes & Smile (from inspiration image) */
+          /* Expressive Cute Pixel Eyes & Smile */
           <>
             {/* Left Eye */}
             <rect x="9" y="6" width="2" height="2" fill="#ffffff" />
@@ -206,7 +221,19 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
         ) : null}
 
         {/* ================= 7. SHIELD (LEFT HAND) ================= */}
-        {hasBucklerShield && (
+        {hasAegisImmortal ? (
+          /* Aegis of the Eternal Immortal - Celestial Starmetal Barrier */
+          <>
+            <rect x="1" y="10" width="7" height="9" fill="#1e1b4b" />
+            <rect x="1.5" y="10.5" width="6" height="8" fill="#312e81" />
+            <rect x="2.5" y="11.5" width="4" height="6" fill="#6366f1" />
+            {/* Diamond Starlight Core */}
+            <rect x="3.5" y="13.5" width="2" height="2" fill="#ffffff" />
+            <rect x="4" y="13" width="1" height="3" fill="#a5f3fc" />
+            <rect x="3" y="14" width="3" height="1" fill="#a5f3fc" />
+            <circle cx="4.5" cy="14.5" r="3" fill="#818cf8" fillOpacity="0.3" />
+          </>
+        ) : hasBucklerShield ? (
           /* Round Wooden Buckler Shield */
           <>
             <rect x="2.5" y="11" width="5" height="7" fill="#78350f" />
@@ -218,10 +245,32 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
             <rect x="4" y="13.5" width="2" height="2" fill="#f59e0b" />
             <rect x="4.5" y="14" width="1" height="1" fill="#ffffff" />
           </>
-        )}
+        ) : null}
 
         {/* ================= 8. WEAPON (RIGHT HAND) ================= */}
-        {hasSunfireSword ? (
+        {hasExcalibur ? (
+          /* Excalibur of the Sun God (1-Year Mythic Transcendent Blade) */
+          <>
+            {/* Ornate Gold Solar Hilt */}
+            <rect x="15" y="13" width="6" height="1.5" fill="#f59e0b" />
+            <rect x="16" y="12" width="4" height="1" fill="#fbbf24" />
+            <rect x="17.5" y="14.5" width="1.5" height="3" fill="#92400e" />
+            <rect x="17" y="17.5" width="2.5" height="1.5" fill="#fbbf24" />
+            <circle cx="18" cy="13.75" r="1.2" fill="#ef4444" />
+
+            {/* Transcendent Pure Sunbeam Blade */}
+            <rect x="17" y="3" width="3.5" height="10" fill="#fef08a" />
+            <rect x="17.5" y="1" width="2.5" height="12" fill="#ffffff" />
+            <rect x="18" y="0" width="1.5" height="13" fill="#ffffff" />
+            <rect x="18.5" y="-1" width="1" height="14" fill="#ffffff" />
+
+            {/* Solar Aura Rays */}
+            <rect x="16" y="2" width="1" height="3" fill="#fbbf24" />
+            <rect x="21" y="1" width="1" height="3" fill="#fbbf24" />
+            <rect x="20.5" y="6" width="1.5" height="2" fill="#f59e0b" />
+            <circle cx="18.5" cy="4" r="5" fill="#fef08a" fillOpacity="0.3" />
+          </>
+        ) : hasSunfireSword ? (
           /* Sunfire Greatsword (Colossal Blade Bathed in Solar Flame) */
           <>
             {/* Golden Sun Crossguard & Hilt */}
@@ -249,13 +298,10 @@ export function PixelHeroSprite({ pose = 'idle', resting = false, size = 80 }: P
           <>
             {/* Wooden Shaft */}
             <rect x="18" y="2" width="1.5" height="19" fill="#78350f" />
-            {/* Spear tip */}
             <rect x="17.5" y="0" width="2.5" height="3" fill="#e2e8f0" />
             <rect x="18" y="0" width="1.5" height="1" fill="#ffffff" />
-            {/* Hook */}
             <rect x="19.5" y="4" width="2.5" height="1" fill="#94a3b8" />
             <rect x="21" y="5" width="1" height="2" fill="#64748b" />
-            {/* Hanging Lantern with glowing ember fire */}
             <rect x="20" y="7" width="3" height="4" fill="#0f172a" />
             <rect x="20.5" y="7.5" width="2" height="3" fill="#f59e0b" />
             <rect x="21" y="8" width="1" height="2" fill="#fef08a" />

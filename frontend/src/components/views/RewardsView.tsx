@@ -32,6 +32,15 @@ const RARITY_THEMES: Record<string, { border: string; bg: string; badge: string;
   },
 }
 
+const getTimeHorizonBadge = (price: number) => {
+  if (price === 0) return null
+  if (price <= 20) return { label: '⚡ ~3-5 Days', color: 'text-gray-300 border-gray-700 bg-gray-900/60' }
+  if (price <= 50) return { label: '🗓️ ~1 Week', color: 'text-emerald-300 border-emerald-500/40 bg-emerald-950/60' }
+  if (price <= 250) return { label: '🌕 ~1 Month', color: 'text-cyan-300 border-cyan-500/40 bg-cyan-950/60' }
+  if (price <= 1000) return { label: '👑 ~3-6 Months', color: 'text-amber-300 border-amber-500/40 bg-amber-950/60' }
+  return { label: '✨ 1 Year Worth', color: 'text-purple-300 border-purple-500/50 bg-purple-950/70 shadow-[0_0_10px_rgba(168,85,247,0.3)]' }
+}
+
 export function RewardsView() {
   const [filter, setFilter] = useState<ShopFilter>('all')
   const { coins, shopItems, buyItem, equipItem, profile } = useGameStore()
@@ -63,7 +72,7 @@ export function RewardsView() {
             </h2>
           </div>
           <p className="mt-1 text-xs text-muted">
-            Earn coins by completing quests (+1 coin) and leveling up (+10 coins). Purchase virtual gear, environmental themes, and profile badges!
+            Earn coins by completing quests (+1 coin), leveling up (+5 coins), and defeating Abyss Raid Bosses (+10 coins). Purchase 1-week, 1-month, and legendary 1-year gear!
           </p>
         </div>
 
@@ -153,6 +162,7 @@ export function RewardsView() {
           const canAfford = coins >= item.price
           const isPurchased = item.isPurchased
           const isEquipped = item.isEquipped
+          const timeBadge = getTimeHorizonBadge(item.price)
 
           const categoryBadge =
             item.type === 'theme'
@@ -167,13 +177,20 @@ export function RewardsView() {
               className={`relative flex flex-col justify-between rounded-2xl border ${theme.border} ${theme.bg} p-4.5 shadow-lg transition-all hover:scale-[1.02]`}
             >
               <div>
-                {/* Rarity and Category Tag Header */}
-                <div className="flex items-center justify-between gap-2">
-                  <span
-                    className={`rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider ${theme.badge}`}
-                  >
-                    {item.rarity}
-                  </span>
+                {/* Rarity, Time Horizon and Category Tag Header */}
+                <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider ${theme.badge}`}
+                    >
+                      {item.rarity}
+                    </span>
+                    {timeBadge && (
+                      <span className={`rounded-full border px-2 py-0.5 font-mono text-[9px] font-bold ${timeBadge.color}`}>
+                        {timeBadge.label}
+                      </span>
+                    )}
+                  </div>
                   <span className="font-mono text-[10px] font-bold uppercase text-gold/80">
                     {categoryBadge}
                   </span>

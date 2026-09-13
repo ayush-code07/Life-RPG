@@ -8,12 +8,14 @@ import { useAuthStore } from './authStore'
 import type { ShopItem } from '../types/rpg'
 
 export const INITIAL_SHOP_ITEMS: ShopItem[] = [
+  // ==========================================
   // --- WEAPONS & COMBAT GEAR ---
+  // ==========================================
   {
     id: 1,
     name: 'Silver Adventurer Sword',
     type: 'weapon',
-    price: 20,
+    price: 35, // ~1 Week
     description: 'Forged tempered iron shortsword. Adds clean strike damage to your character.',
     rarity: 'rare',
     icon: '🗡️',
@@ -25,9 +27,9 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 8,
     name: 'Lantern Halberd Polearm',
     type: 'weapon',
-    price: 90,
+    price: 190, // ~1 Month
     description: 'Ancient wooden polearm featuring an incandescent ember lantern on a brass hook.',
-    rarity: 'legendary',
+    rarity: 'epic',
     icon: '🏮',
     statBonus: '+35 Mastery • Dark Vision',
     isPurchased: false,
@@ -37,7 +39,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 12,
     name: 'Sunfire Greatsword',
     type: 'weapon',
-    price: 120,
+    price: 600, // ~3 Months
     description: 'A colossal two-handed blade bathed in eternal solar flame.',
     rarity: 'legendary',
     icon: '⚔️',
@@ -45,13 +47,27 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     isPurchased: false,
     isEquipped: false,
   },
+  {
+    id: 13,
+    name: 'Excalibur of the Sun God',
+    type: 'weapon',
+    price: 2500, // ~1 Year
+    description: 'Forged through 365 days of unbroken mortal discipline. Radiates blinding solar rays and celestial fury.',
+    rarity: 'legendary',
+    icon: '✨',
+    statBonus: '+120 Strength • +200 Boss Strike • Solar Flare',
+    isPurchased: false,
+    isEquipped: false,
+  },
 
+  // ==========================================
   // --- ARMOR, HELMETS & CLOAKS ---
+  // ==========================================
   {
     id: 2,
     name: 'Viking Horned Helmet',
     type: 'armor',
-    price: 15,
+    price: 20, // ~5 Days
     description: 'Hardened leather and iron cap flanked by twin bull horns.',
     rarity: 'common',
     icon: '🪖',
@@ -63,7 +79,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 5,
     name: 'Leather Bandit Vest',
     type: 'armor',
-    price: 30,
+    price: 15, // ~3-4 Days
     description: 'Supple stitched leather doublet providing swift agile movement.',
     rarity: 'common',
     icon: '🥋',
@@ -75,7 +91,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 6,
     name: 'Spirit Ghost Mask',
     type: 'armor',
-    price: 60,
+    price: 150, // ~1 Month
     description: 'Mystic phantom visage that stares through cognitive illusions.',
     rarity: 'epic',
     icon: '🎭',
@@ -87,9 +103,9 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 9,
     name: 'Royal Knight Steel Plate',
     type: 'armor',
-    price: 90,
+    price: 220, // ~1 Month
     description: 'Ceremonial blue steel heavy plate armor with fortified pauldrons.',
-    rarity: 'legendary',
+    rarity: 'epic',
     icon: '🛡️',
     statBonus: '+30 Strength • +25 Vitality',
     isPurchased: false,
@@ -99,7 +115,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 10,
     name: 'Crown of Sovereignty',
     type: 'armor',
-    price: 100,
+    price: 800, // ~4 Months
     description: 'Golden crown set with glowing ruby jewels for masters of daily trials.',
     rarity: 'legendary',
     icon: '👑',
@@ -111,21 +127,35 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 11,
     name: 'Cloak of the Sovereign',
     type: 'cloak',
-    price: 45,
+    price: 45, // ~1-1.5 Weeks
     description: 'Crimson velvet mantle with gold trim that flows with momentum.',
-    rarity: 'epic',
+    rarity: 'rare',
     icon: '🧣',
     statBonus: '+15 Mastery • 2x Streak Aura',
     isPurchased: false,
     isEquipped: false,
   },
+  {
+    id: 15,
+    name: "Emperor's Astral Regalia",
+    type: 'armor',
+    price: 3200, // ~1 Year
+    description: 'The divine ceremonial armor of the Immortal Ashen Emperor. Consecrated by a full year of unbroken habit trials.',
+    rarity: 'legendary',
+    icon: '🌌',
+    statBonus: '+180 All Attributes • Immortal Aura',
+    isPurchased: false,
+    isEquipped: false,
+  },
 
+  // ==========================================
   // --- SHIELDS & RELICS ---
+  // ==========================================
   {
     id: 3,
     name: 'Round Buckler Shield',
     type: 'shield',
-    price: 20,
+    price: 25, // ~1 Week
     description: 'Solid oak round shield reinforced with a polished brass boss.',
     rarity: 'rare',
     icon: '🛡️',
@@ -137,9 +167,9 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 4,
     name: 'Crimson Health Potion',
     type: 'relic',
-    price: 25,
+    price: 15, // ~3-4 Days
     description: 'Glows with restorative life essence hitched directly to your adventurer belt.',
-    rarity: 'rare',
+    rarity: 'common',
     icon: '🧪',
     statBonus: '+15 Max Stamina • Fast Regen',
     isPurchased: false,
@@ -149,7 +179,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 7,
     name: 'Companion Ghost Wisp',
     type: 'relic',
-    price: 70,
+    price: 180, // ~1 Month
     description: 'A cute blue floating spectral pet hovering loyally beside your shoulder.',
     rarity: 'epic',
     icon: '👻',
@@ -157,13 +187,27 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     isPurchased: false,
     isEquipped: false,
   },
+  {
+    id: 14,
+    name: 'Aegis of the Eternal Immortal',
+    type: 'shield',
+    price: 2800, // ~1 Year
+    description: 'A legendary starmetal aegis carved from celestial stardust. Requires a year of triumph over life trials.',
+    rarity: 'legendary',
+    icon: '🔰',
+    statBonus: '+150 Vitality • Absolute Guard',
+    isPurchased: false,
+    isEquipped: false,
+  },
 
+  // ==========================================
   // --- VIRTUAL THEMES ---
+  // ==========================================
   {
     id: 20,
     name: 'Midnight Ember Theme',
     type: 'theme',
-    price: 15,
+    price: 0,
     description: 'Deep obsidian shadows with glowing ember particles and solar eclipse accents.',
     rarity: 'common',
     icon: '🔥',
@@ -176,7 +220,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 21,
     name: 'Emerald Sanctuary Theme',
     type: 'theme',
-    price: 35,
+    price: 35, // ~1 Week
     description: 'Verdant forest tones, soothing emerald ambient lighting, and calm vitality vibes.',
     rarity: 'rare',
     icon: '🌿',
@@ -189,7 +233,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 22,
     name: 'Astral Void Theme',
     type: 'theme',
-    price: 55,
+    price: 150, // ~1 Month
     description: 'Deep cosmic starlight with pulsing stellar dust and arcane mystic ambiance.',
     rarity: 'epic',
     icon: '🌌',
@@ -202,9 +246,9 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 23,
     name: 'Bloodforged Abyss Theme',
     type: 'theme',
-    price: 75,
+    price: 220, // ~1 Month
     description: 'Fierce volcanic magma aesthetic with crimson rune flames and heavy boss aura.',
-    rarity: 'legendary',
+    rarity: 'epic',
     icon: '🌋',
     statBonus: 'Theme: Volcanic Crimson Magma',
     themeClass: 'theme-bloodforged-abyss',
@@ -215,7 +259,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 24,
     name: 'Ascendant Sol Theme',
     type: 'theme',
-    price: 100,
+    price: 750, // ~4 Months
     description: 'Gilded palace radiance with radiant solar rays and celebratory gold lighting.',
     rarity: 'legendary',
     icon: '☀️',
@@ -224,13 +268,28 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     isPurchased: false,
     isEquipped: false,
   },
+  {
+    id: 25,
+    name: 'Celestial Genesis Theme',
+    type: 'theme',
+    price: 3000, // ~1 Year
+    description: 'Transcendent cosmic realm of newborn galaxies, prismatic nebulae, and eternal starlight.',
+    rarity: 'legendary',
+    icon: '🌠',
+    statBonus: 'Theme: Celestial Genesis & Aurora',
+    themeClass: 'theme-celestial-genesis',
+    isPurchased: false,
+    isEquipped: false,
+  },
 
+  // ==========================================
   // --- PROFILE BADGES & TITLES ---
+  // ==========================================
   {
     id: 30,
     name: 'Vanquisher Crest',
     type: 'badge',
-    price: 20,
+    price: 25, // ~1 Week
     description: 'Display the title "⚔️ Vanquisher of the Dark" proudly across your profile and top banner.',
     rarity: 'rare',
     icon: '⚔️',
@@ -243,7 +302,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 31,
     name: 'Archmage Crest',
     type: 'badge',
-    price: 30,
+    price: 35, // ~1 Week
     description: 'Bestowed upon master coders, deep thinkers, and dedicated lifelong learners.',
     rarity: 'rare',
     icon: '🧠',
@@ -256,7 +315,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 32,
     name: 'Iron Sentinel Crest',
     type: 'badge',
-    price: 40,
+    price: 120, // ~3 Weeks
     description: 'Unwavering focus, morning discipline adherence, and unbreakable resilience.',
     rarity: 'epic',
     icon: '🛡️',
@@ -269,7 +328,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 33,
     name: 'Flamekeeper Crest',
     type: 'badge',
-    price: 60,
+    price: 180, // ~1 Month
     description: 'The sacred guardian of the eternal embers who never lets the bonfire die out.',
     rarity: 'epic',
     icon: '🔥',
@@ -282,7 +341,7 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 34,
     name: 'Mythic Conqueror Crest',
     type: 'badge',
-    price: 80,
+    price: 600, // ~3 Months
     description: 'The highest honor for apex adventurers who conquer impossible daily trials.',
     rarity: 'legendary',
     icon: '👑',
@@ -295,12 +354,25 @@ export const INITIAL_SHOP_ITEMS: ShopItem[] = [
     id: 35,
     name: 'Diamond Will Crest',
     type: 'badge',
-    price: 100,
+    price: 1000, // ~5-6 Months
     description: 'A flawless diamond badge symbolizing zero missed daily quests and iron fortitude.',
     rarity: 'legendary',
     icon: '💎',
     statBonus: 'Title: 💎 Diamond Will',
     badgeTitle: '💎 Diamond Will',
+    isPurchased: false,
+    isEquipped: false,
+  },
+  {
+    id: 36,
+    name: 'Godking of the Ashen Realm',
+    type: 'badge',
+    price: 3500, // ~1 Year
+    description: 'Bestowed only upon true immortals who dedicated 365 days of relentless self-evolution.',
+    rarity: 'legendary',
+    icon: '🌌',
+    statBonus: 'Title: 👑 Godking of the Ashen Realm',
+    badgeTitle: '👑 Godking of the Ashen Realm',
     isPurchased: false,
     isEquipped: false,
   },
@@ -1386,8 +1458,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         const current = get().profile ?? previewProfile
         const gained = applyXPGain(current.current_level, current.total_xp, effectiveXp)
 
-        // Coins economy: +1 coin per task + 10 coins per level up
-        const earnedCoins = 1 + (gained.levelsGained * 10)
+        // Coins economy: +1 coin per task + 5 coins per level up
+        const earnedCoins = 1 + (gained.levelsGained * 5)
         const updatedCoins = get().coins + earnedCoins
         const nextStreak = current.current_streak + 1
 
@@ -1419,7 +1491,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         const result: TaskCompletionResponse = {
           message: gained.levelsGained > 0
-            ? `🎉 Level Up! (+${gained.levelsGained * 10} Coins, +${slashesEarned} Hero Slashes)`
+            ? `🎉 Level Up! (+${gained.levelsGained * 5} Coins, +${slashesEarned} Hero Slashes)`
             : streakMultiplier > 1.0
               ? `Quest complete. +${effectiveXp} XP (${streakMultiplier}x Flame Streak Bonus!) • +${slashesEarned} Hero Slash`
               : `Quest complete. (+1 Coin, +${slashesEarned} Hero Slash)`,
@@ -1447,7 +1519,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           celebration: gained.levelsGained > 0 ? {
             type: 'LEVEL_UP',
             level: gained.newLevel,
-            coinsEarned: gained.levelsGained * 10,
+            coinsEarned: gained.levelsGained * 5,
           } : null,
           syncing: false,
           profile: applyCompletionToProfile(current, result),
@@ -1457,9 +1529,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       const result = await rpgApi.completeTask(accessToken, taskId)
 
-      // Coins economy: +1 coin per task + 10 coins per level up
+      // Coins economy: +1 coin per task + 5 coins per level up
       const levelsGained = result.profile.levels_gained || 0
-      const earnedCoins = 1 + (levelsGained * 10)
+      const earnedCoins = 1 + (levelsGained * 5)
       const updatedCoins = get().coins + earnedCoins
       const userId = get().profile?.id
 
@@ -1512,7 +1584,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         celebration: levelsGained > 0 ? {
           type: 'LEVEL_UP',
           level: result.profile.current_level,
-          coinsEarned: levelsGained * 10,
+          coinsEarned: levelsGained * 5,
         } : null,
         syncing: false,
         profile: applyCompletionToProfile(get().profile, result),
