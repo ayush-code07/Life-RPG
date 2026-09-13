@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useAuthStore } from '../../store/authStore'
 import { useGameStore } from '../../store/gameStore'
 import { BOSS_TIERS } from '../../lib/bosses'
 
 export function BossArenaView() {
-  const accessToken = useAuthStore((state) => state.accessToken)
   const {
     boss,
     bossTier,
@@ -13,13 +11,11 @@ export function BossArenaView() {
     heroComboCharge,
     slashCharges,
     combatLog,
-    tasks,
     shopItems,
     useSlashCharge,
     unleashLimitBreak,
     claimBossVictory,
     dismissBossVictory,
-    completeQuest,
   } = useGameStore()
 
   const [floatingDamage, setFloatingDamage] = useState<{ id: number; damage: number; x: number } | null>(null)
@@ -29,7 +25,6 @@ export function BossArenaView() {
   const hpPercent = Math.max(0, Math.min(100, Math.round((currentHp / maxHp) * 100)))
   const isEnraged = hpPercent <= 40 && hpPercent > 0
   const equippedWeapon = shopItems.find((i) => i.isEquipped && i.type === 'weapon')
-  const activeQuests = tasks.filter((t) => t.status === 'active')
 
   const triggerDamageNumber = (dmg: number) => {
     const randomX = Math.floor(Math.random() * 80) - 40
@@ -49,15 +44,6 @@ export function BossArenaView() {
     const limitDmg = Math.round(maxHp * 0.35)
     triggerDamageNumber(limitDmg)
     unleashLimitBreak()
-  }
-
-  const handleQuestAttack = async (taskId: number) => {
-    if (!accessToken) return
-    const quest = tasks.find((t) => t.task_id === taskId)
-    if (!quest) return
-    const questDmg = quest.xp_reward + (equippedWeapon ? 30 : 0)
-    triggerDamageNumber(questDmg)
-    await completeQuest(accessToken, taskId)
   }
 
   const elementTheme = {
@@ -286,44 +272,6 @@ export function BossArenaView() {
             >
               ⚡ UNLEASH SOLAR ARCANE CLEAVE (DEALS 35% BOSS HP)
             </button>
-          </div>
-
-          {/* Active Quests Strike Deck */}
-          <div className="rounded-2xl border border-[#2e261d] bg-[#120f0c] p-5 space-y-3">
-            <div className="flex items-center justify-between border-b border-[#262018] pb-2.5">
-              <h4 className="font-display text-xs font-bold text-parchment uppercase tracking-wider">
-                ⚔️ CHANNEL QUESTS INTO DIRECT STRIKES ({activeQuests.length})
-              </h4>
-              <span className="font-mono text-[10px] text-muted">Completing quests damages the boss</span>
-            </div>
-
-            {activeQuests.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-[#262018] p-6 text-center text-xs text-muted">
-                No active quests. Inscribe quests on the Sanctuary Notice Board to channel strike damage!
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                {activeQuests.slice(0, 5).map((quest) => (
-                  <div
-                    key={quest.task_id}
-                    className="flex items-center justify-between rounded-xl border border-[#262018] bg-[#16120e] p-3 hover:border-gold/30 transition-all"
-                  >
-                    <div className="min-w-0 flex-1 pr-3">
-                      <p className="font-display text-xs font-bold text-parchment truncate">{quest.title}</p>
-                      <span className="font-mono text-[10px] text-emerald-400">+{quest.xp_reward} XP • Deals -{quest.xp_reward + (equippedWeapon ? 30 : 0)} HP</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleQuestAttack(quest.task_id)}
-                      className="rounded-lg border border-red-500/50 bg-red-950/60 px-3 py-1.5 font-display text-[11px] font-bold text-red-300 hover:bg-red-900/80 active:scale-95 transition-all shadow-sm shrink-0"
-                    >
-                      ⚔️ STRIKE!
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
