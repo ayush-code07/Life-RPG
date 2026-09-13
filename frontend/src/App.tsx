@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { AuthScreen } from './components/auth/AuthScreen'
+import { LandingPage } from './components/landing/LandingPage'
 import { Dashboard } from './components/dashboard/Dashboard'
 import { SkipLink } from './components/ui/SkipLink'
 import { useAuthStore } from './store/authStore'
@@ -12,6 +13,9 @@ export default function App() {
   const preview = useAuthStore((state) => state.preview)
   const resetGame = useGameStore((state) => state.reset)
 
+  const [showAuth, setShowAuth] = useState(false)
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
+
   useEffect(() => {
     void initialize()
   }, [initialize])
@@ -21,6 +25,11 @@ export default function App() {
   }, [session, preview, resetGame])
 
   const signedIn = Boolean(session || preview)
+
+  const handleOpenAuth = (mode: 'signin' | 'signup') => {
+    setAuthMode(mode)
+    setShowAuth(true)
+  }
 
   return (
     <>
@@ -33,8 +42,13 @@ export default function App() {
         </main>
       ) : signedIn ? (
         <Dashboard />
+      ) : showAuth ? (
+        <AuthScreen
+          initialMode={authMode}
+          onBack={() => setShowAuth(false)}
+        />
       ) : (
-        <AuthScreen />
+        <LandingPage onOpenAuth={handleOpenAuth} />
       )}
     </>
   )

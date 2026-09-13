@@ -4,10 +4,15 @@ import { isSupabaseConfigured, useAuthStore } from '../../store/authStore'
 
 type AuthMode = 'signin' | 'signup'
 
-export function AuthScreen() {
+interface AuthScreenProps {
+  initialMode?: AuthMode
+  onBack?: () => void
+}
+
+export function AuthScreen({ initialMode = 'signin', onBack }: AuthScreenProps) {
   const reduceMotion = useReducedMotion()
-  const { signIn, signUp, enterPreview, authError, clearError } = useAuthStore()
-  const [mode, setMode] = useState<AuthMode>('signin')
+  const { signIn, signUp, authError, clearError } = useAuthStore()
+  const [mode, setMode] = useState<AuthMode>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
@@ -51,9 +56,19 @@ export function AuthScreen() {
         initial={reduceMotion ? false : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="rounded-2xl border border-gold/25 bg-panel/90 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]"
+        className="relative rounded-2xl border border-gold/25 bg-panel/90 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.45)]"
         aria-labelledby="auth-heading"
       >
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-4 inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-muted hover:text-gold transition-colors"
+          >
+            ← Back to Home
+          </button>
+        )}
+
         <div className="flex items-center gap-2.5 mb-3">
           <span className="text-xl">🔥</span>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-gold-gradient">
@@ -115,7 +130,7 @@ export function AuthScreen() {
             type="submit"
             disabled={submitting || !isSupabaseConfigured}
             aria-label={mode === 'signin' ? 'Sign in to Life RPG' : 'Create Life RPG account'}
-            className="w-full rounded-xl bg-gold px-4 py-3 text-sm font-bold text-ink transition enabled:hover:bg-gold-deep disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl bg-gold px-4 py-3 text-sm font-bold text-ink transition enabled:hover:bg-gold-deep disabled:cursor-not-allowed disabled:opacity-60 shadow-[0_0_20px_rgba(226,179,104,0.25)]"
           >
             {submitting ? 'Binding the seal…' : actionLabel}
           </button>
@@ -134,15 +149,6 @@ export function AuthScreen() {
             {mode === 'signin' ? 'Create account' : 'Sign in'}
           </button>
         </div>
-
-        <button
-          type="button"
-          onClick={enterPreview}
-          aria-label="Open offline preview of the Life RPG dashboard"
-          className="mt-5 w-full rounded-xl border border-gold/30 px-4 py-2.5 text-sm font-semibold text-parchment hover:bg-gold/10"
-        >
-          Explore command deck (offline preview)
-        </button>
       </motion.section>
 
       <AnimatePresence>
